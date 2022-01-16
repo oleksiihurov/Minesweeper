@@ -11,9 +11,22 @@ Logic, primary purpose and calculations.
 """
 
 
+# System imports
+from enum import Enum, auto
+
 # External imports
 import numpy as np
 
+
+# -----------------------------------------------------------------------------
+
+class CLICK(Enum):
+    LEFT = auto()  # to open
+    RIGHT = auto()  # to flag
+    MIDDLE = auto()  # to flag it or reveal its adjacent cells
+
+
+# --- Logic class -------------------------------------------------------------
 
 class Logic:
 
@@ -38,6 +51,9 @@ class Logic:
             shape = (self.rows, self.cols),
             dtype = np.uint8
         )
+
+        self.is_detonated = False
+        self.click_position = (None, None)
 
     # --- Matrix initialization methods ---------------------------------------
 
@@ -71,3 +87,69 @@ class Logic:
 
         print(self.mined)
         print(self.neighbours)
+
+    # -------------------------------------------------------------------------
+
+    def click(self, click: CLICK, click_position):
+        self.click_position = click_position
+
+        if click == CLICK.LEFT:
+            if not self.opened[click_position]:
+                if not self.flagged[click_position]:
+                    if not self.mined[click_position]:
+                        self.opened[click_position] = True
+                        if self.neighbours[click_position] == 0:
+                            pass
+                            # TODO to expand
+                    else:
+                        # Game over
+                        self.is_detonated = True
+
+        elif click == CLICK.RIGHT:
+            if not self.opened[click_position]:
+                self.flagged[click_position] = not self.flagged[click_position]
+
+        else:  # click == CLICK.MIDDLE
+            pass
+            # TODO
+
+    def matrix_to_draw(self):
+        """
+        0   : empty open cell, 0 neighbours
+        1-8 : open cell with 1-8 neighbours
+        9   : covered cell
+        10  : flagged cell
+        11  : bomb cell
+        12  : wrong bomb cell
+        13  : detonated cell
+        """
+        matrix = np.zeros((self.rows, self.cols), np.uint8)
+        for row in range(self.rows):
+            for col in range(self.cols):
+                if self.opened[row, col]:
+                    matrix[row, col] = self.neighbours[row, col]
+                else:
+                    if not self.is_detonated:
+                        if self.flagged[row, col]:
+                            matrix[row, col] = 10
+                        else:
+                            matrix[row, col] = 9
+                    else:
+                        if self.click_position == (row, col) \
+                                and self.mined[row, col] \
+                                and not self.flagged[row, col]:
+                            matrix[row, col] = 13
+                            break
+                        if self.flagged[row, col] \
+                                and not self.mined[row, col]:
+                            matrix[row, col] = 12
+                            break
+                        if self.mined[row, col] \
+                                and not self.flagged[row, col]:
+                            matrix[row, col] = 11
+                            break
+                        if self.mined[row, col] \
+                                and self.flagged[row, col]:
+                            matrix[row, col] = 10
+                            break
+                        matrix[row, col] = 9
