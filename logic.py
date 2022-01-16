@@ -20,6 +20,12 @@ import numpy as np
 
 # -----------------------------------------------------------------------------
 
+class START(Enum):
+    AS_IS = auto()  # as minefield generated
+    NO_BOMB = auto()  # Once bomb appear under 1st click - it moved elsewhere
+    EMPTY_CELL = auto()  # Under 1st click - entire 3*3 area cleared from bombs
+
+
 class CLICK(Enum):
     LEFT = auto()  # to open
     RIGHT = auto()  # to flag
@@ -52,6 +58,7 @@ class Logic:
             dtype = np.uint8
         )
 
+        self.is_started = False
         self.is_detonated = False
         self.click_position = (None, None)
 
@@ -88,30 +95,48 @@ class Logic:
         print(self.mined)
         print(self.neighbours)
 
-    # -------------------------------------------------------------------------
+    # --- Click methods -------------------------------------------------------
+
+    def _first_click_left_button(self):
+        pass
+        # TODO
+
+    def _click_left_button(self):
+        if not self.opened[self.click_position]:
+            if not self.flagged[self.click_position]:
+                if not self.mined[self.click_position]:
+                    self.opened[self.click_position] = True
+                    if self.neighbours[self.click_position] == 0:
+                        pass
+                        # TODO to expand
+                else:
+                    # Game over
+                    self.is_detonated = True
+
+    def _click_right_button(self):
+        if not self.opened[self.click_position]:
+            self.flagged[self.click_position] = \
+                not self.flagged[self.click_position]
+
+    def _click_middle_button(self):
+        pass
+        # TODO
 
     def click(self, click: CLICK, click_position):
         self.click_position = click_position
 
         if click == CLICK.LEFT:
-            if not self.opened[click_position]:
-                if not self.flagged[click_position]:
-                    if not self.mined[click_position]:
-                        self.opened[click_position] = True
-                        if self.neighbours[click_position] == 0:
-                            pass
-                            # TODO to expand
-                    else:
-                        # Game over
-                        self.is_detonated = True
-
+            if not self.is_started:
+                self._first_click_left_button()
+                self.is_started = True
+            else:  # self.is_started == True
+                self._click_left_button()
         elif click == CLICK.RIGHT:
-            if not self.opened[click_position]:
-                self.flagged[click_position] = not self.flagged[click_position]
-
+            self._click_right_button()
         else:  # click == CLICK.MIDDLE
-            pass
-            # TODO
+            self._click_middle_button()
+
+    # -------------------------------------------------------------------------
 
     def matrix_to_draw(self):
         """
