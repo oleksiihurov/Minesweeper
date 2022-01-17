@@ -12,55 +12,55 @@ Logic, primary purpose and calculations.
 
 
 # System imports
-from enum import Enum, auto
+from typing import Union
 
 # External imports
 import numpy as np
 
-
-# -----------------------------------------------------------------------------
-
-class START(Enum):
-    AS_IS = auto()  # as minefield generated
-    NO_BOMB = auto()  # Once bomb appear under 1st click - it moved elsewhere
-    EMPTY_CELL = auto()  # Under 1st click - entire 3*3 area cleared from bombs
-
-
-class CLICK(Enum):
-    LEFT = auto()  # to open
-    RIGHT = auto()  # to flag
-    MIDDLE = auto()  # to flag it or reveal its adjacent cells
+# project imports
+from config import START, CLICK
 
 
 # --- Logic class -------------------------------------------------------------
 
 class Logic:
+    """All the Minesweeper game logic is here."""
 
     def __init__(self, game):
+        # retrieving provided game parameters
         self.cols = game.COLS
         self.rows = game.ROWS
+        self.rule = game.RULE
         self.bombs = game.BOMBS
 
+        # boolean matrix layer of the present bombs on the minefield
         self.mined = np.empty(
             shape = (self.rows, self.cols),
             dtype = np.bool
         )
+        # boolean matrix layer of the revealed/covered minefield cells
         self.opened = np.empty(
             shape = (self.rows, self.cols),
             dtype = np.bool
         )
+        # boolean matrix layer of the flagged/non-flagged cells by player
         self.flagged = np.empty(
             shape = (self.rows, self.cols),
             dtype = np.bool
         )
+        # matrix layer which represents number of bombs nearby for each cell
         self.neighbours = np.empty(
             shape = (self.rows, self.cols),
             dtype = np.uint8
         )
 
+        # flags
         self.is_started = False
         self.is_detonated = False
-        self.click_position = (None, None)
+
+        # click position in format: (row, column)
+        self.click_position: tuple[Union[int, None], Union[int, None]] = \
+            (None, None)
 
     # --- Matrix initialization methods ---------------------------------------
 
@@ -97,9 +97,70 @@ class Logic:
 
     # --- Click methods -------------------------------------------------------
 
-    def _first_click_left_button(self):
-        pass
-        # TODO
+    def _before_first_click_left_button(self):
+        """
+        Rearranging bombs under position of the first open click
+        according to current game rule.
+        """
+
+        if self.flagged[self.click_position]:
+            return
+
+        if self.rule == START.AS_IS:
+            pass
+
+        elif self.rule == START.NO_BOMB:
+            if self.mined[self.click_position]:
+                while self.mined[(
+                        new_bomb_position := (
+                                np.random.randint(self.rows),
+                                np.random.randint(self.cols)
+                        )
+                )]:
+                    pass
+                self.mined[new_bomb_position] = True
+                self.mined[self.click_position] = False
+                self.calculate_neighbours()
+
+        else:  # self.rule == START.EMPTY_CELL
+            click_row, click_col = self.click_position
+
+            covered_cells = 9
+            # first click position is at the corner of the minefield:
+            if self.click_position == (self.rows - 1, self.cols - 1) \
+                    or self.click_position == (0, self.cols - 1) \
+                    or self.click_position == (self.rows - 1, 0) \
+                    or self.click_position == (0, 0):
+                covered_cells = 4
+            else:
+                # first click position is at the edge of the minefield:
+                if click_row == 0 or click_row == self.rows - 1 \
+                        or click_col == 0 or click_col == self.cols - 1:
+                    covered_cells = 6
+
+            # validation by exceeding number of bombs
+            if self.bombs + covered_cells >= (self.rows * self.cols):
+                raise ValueError(
+                    "Too many bombs on the minefield "
+                    "to meet the rule of empty cell "
+                    "for the first open click."
+                )
+
+            while self.neighbours[self.click_position] != 0:
+                for i in range(self.neighbours[self.click_position]):
+                    while self.mined[(
+                            new_bomb_position := (
+                                    np.random.randint(self.rows),
+                                    np.random.randint(self.cols)
+                            )
+                    )]:
+                        pass
+                    self.mined[new_bomb_position] = True
+                self.mined[
+                    max(click_row - 1, 0):min(click_row + 2, self.rows + 1),
+                    max(click_col - 1, 0):min(click_col + 2, self.cols + 1)
+                ] = False
+                self.calculate_neighbours()
 
     def _click_left_button(self):
         if not self.opened[self.click_position]:
@@ -127,19 +188,46 @@ class Logic:
 
         if click == CLICK.LEFT:
             if not self.is_started:
-                self._first_click_left_button()
+                self._before_first_click_left_button()
                 self.is_started = True
-            else:  # self.is_started == True
-                self._click_left_button()
+            self._click_left_button()
         elif click == CLICK.RIGHT:
             self._click_right_button()
         else:  # click == CLICK.MIDDLE
             self._click_middle_button()
 
+    # --- Checking game state methods -----------------------------------------
+
+    def is_game_won(self) -> bool:
+        """
+        Checking if the current state of the game is won.
+        """
+        pass
+        # TODO
+
+    def game_won_postprocedure(self):
+        """
+        Presumably: self.is_game_won() == True
+        Marking all the remaining closed cells by flags.
+        """
+        for row in range(self.rows):
+            for col in range(self.cols):
+                if self.mined[row, col]:
+                    self.flagged[row, col] = True
+
+    def is_game_lost(self) -> bool:
+        """
+        Checking if the current state of the game is lost.
+        """
+        return True if self.is_detonated else False
+
     # -------------------------------------------------------------------------
 
-    def matrix_to_draw(self):
+    def matrix_to_draw(self) -> np.ndarray:
         """
+        Exporting minefield matrix with the following definitions:
+        (suitable for drawing current state using separate graphics module)
+
         0   : empty open cell, 0 neighbours
         1-8 : open cell with 1-8 neighbours
         9   : covered cell
@@ -148,7 +236,9 @@ class Logic:
         12  : wrong bomb cell
         13  : detonated cell
         """
+
         matrix = np.zeros((self.rows, self.cols), np.uint8)
+
         for row in range(self.rows):
             for col in range(self.cols):
                 if self.opened[row, col]:
@@ -178,3 +268,5 @@ class Logic:
                             matrix[row, col] = 10
                             break
                         matrix[row, col] = 9
+
+        return matrix
