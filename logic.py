@@ -123,16 +123,25 @@ class Logic:
         # Step 1: forming list of positions of adjacent empty cells
         expanding_cells = {position: False}
         while False in expanding_cells.values():
+            expanding_cells_to_add = dict()
             for cell_position, was_processed in expanding_cells.items():
                 if not was_processed:
                     expanding_cells[cell_position] = True
                     for neighbour in self.find_neighbours(cell_position):
                         if self.nearby[neighbour] == 0:
-                            if expanding_cells.get(neighbour) is None:
-                                expanding_cells[neighbour] = False
+                            if not self.flagged[neighbour]:
+                                expanding_cells_to_add[neighbour] = False
+            for empty_neighbour in expanding_cells_to_add:
+                if expanding_cells.get(empty_neighbour) is None:
+                    expanding_cells[empty_neighbour] = False
 
         # Step 2: opening all the neighbour cells to the list from Step 1
-        # TODO
+        for empty_cell in expanding_cells:
+            if not self.flagged[empty_cell]:
+                self.opened[empty_cell] = True
+            for neighbour in self.find_neighbours(empty_cell):
+                if not self.flagged[neighbour]:
+                    self.opened[neighbour] = True
 
     # --- Click methods -------------------------------------------------------
 
@@ -207,8 +216,7 @@ class Logic:
                 if not self.mined[self.click_position]:
                     self.opened[self.click_position] = True
                     if self.nearby[self.click_position] == 0:
-                        pass
-                        # TODO to expand
+                        self.expand(self.click_position)
                 else:
                     # Game over
                     self.is_detonated = True
@@ -262,22 +270,43 @@ class Logic:
 
     # -------------------------------------------------------------------------
 
-    def print_matrix(self):
+    def print_revealed_minefield(self):
         print()
         lines = '┌─' + '──' * self.cols + '┐' + '\n'
         for row in range(self.rows):
             line = '│ '
             for col in range(self.cols):
                 if self.mined[row, col]:
-                    line += '█'
+                    line += '*'
+                else:
+                    if self.nearby[row, col]:
+                        line += str(self.nearby[row, col])
+                    else:
+                        line += ' '  # '·'
+                line += ' '
+            lines += line + '│' + '\n'
+        lines += '└─' + '──' * self.cols + '┘'
+        print(lines)
+
+    def print_covered_minefield(self):
+        print()
+        lines = '╔═' + '══' * self.cols + '╗' + '\n'
+        for row in range(self.rows):
+            line = '║ '
+            for col in range(self.cols):
+                if not self.opened[row, col]:
+                    if self.flagged[row, col]:
+                        line += '▒'
+                    else:
+                        line += '█'
                 else:
                     if self.nearby[row, col]:
                         line += str(self.nearby[row, col])
                     else:
                         line += '·'
                 line += ' '
-            lines += line + '│' + '\n'
-        lines += '└─' + '──' * self.cols + '┘'
+            lines += line + '║' + '\n'
+        lines += '╚═' + '══' * self.cols + '╝'
         print(lines)
 
     def matrix_to_draw(self) -> np.ndarray:
