@@ -92,9 +92,6 @@ class Logic:
         self.generate_bombs()
         self.calculate_neighbours()
 
-        print(self.mined)
-        print(self.neighbours)
-
     # --- Click methods -------------------------------------------------------
 
     def _before_first_click_left_button(self):
@@ -222,6 +219,24 @@ class Logic:
         return True if self.is_detonated else False
 
     # -------------------------------------------------------------------------
+
+    def print_matrix(self):
+        print()
+        lines = '┌─' + '──' * self.cols + '┐' + '\n'
+        for row in range(self.rows):
+            line = '│ '
+            for col in range(self.cols):
+                if self.mined[row, col]:
+                    line += '█'
+                else:
+                    if self.neighbours[row, col]:
+                        line += str(self.neighbours[row, col])
+                    else:
+                        line += '·'
+                line += ' '
+            lines += line + '│' + '\n'
+        lines += '└─' + '──' * self.cols + '┘'
+        print(lines)
 
     def matrix_to_draw(self) -> np.ndarray:
         """

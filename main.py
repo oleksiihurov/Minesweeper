@@ -21,6 +21,7 @@ from logic import Logic
 def main():
     logic = Logic(GAME)
     logic.new_game()
+    logic.print_matrix()
 
 
 if __name__ == '__main__':
