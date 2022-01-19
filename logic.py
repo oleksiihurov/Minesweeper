@@ -11,9 +11,6 @@ Logic, primary purpose and calculations.
 """
 
 
-# System imports
-from typing import Union
-
 # External imports
 import numpy as np
 
@@ -49,7 +46,7 @@ class Logic:
             dtype = np.bool
         )
         # matrix layer which represents number of bombs nearby for each cell
-        self.neighbours = np.empty(
+        self.nearby = np.empty(
             shape = (self.rows, self.cols),
             dtype = np.uint8
         )
@@ -59,8 +56,7 @@ class Logic:
         self.is_detonated = False
 
         # click position in format: (row, column)
-        self.click_position: tuple[Union[int, None], Union[int, None]] = \
-            (None, None)
+        self.click_position: tuple[int, int] = (0, 0)
 
     # --- Matrix initialization methods ---------------------------------------
 
@@ -69,7 +65,7 @@ class Logic:
         self.mined = np.zeros_like(self.mined)
         self.opened = np.zeros_like(self.opened)
         self.flagged = np.zeros_like(self.flagged)
-        self.neighbours = np.zeros_like(self.neighbours)
+        self.nearby = np.zeros_like(self.nearby)
 
     def generate_bombs(self):
         tmp = np.zeros(self.rows * self.cols, self.mined.dtype)
@@ -77,20 +73,66 @@ class Logic:
         np.random.shuffle(tmp)
         self.mined = tmp.reshape((self.rows, self.cols))
 
-    def calculate_neighbours(self):
+    def calculate_nearby(self):
         # creating temporary matrix with empty borders around mined field
         m = np.zeros((self.rows + 2, self.cols + 2), self.mined.dtype)
         m[1:self.rows+1, 1:self.cols+1] = self.mined
-        # calculating number of neighbour bombs, excluding self cell bomb
+        # calculating number of nearby bombs, excluding self cell bomb
         for row in range(self.rows):
             for col in range(self.cols):
-                self.neighbours[row, col] = \
+                self.nearby[row, col] = \
                     np.sum(m[row:row+3, col:col+3]) - m[row+1, col+1]
 
     def new_game(self):
         self.clear_matrices()
         self.generate_bombs()
-        self.calculate_neighbours()
+        self.calculate_nearby()
+
+    # -------------------------------------------------------------------------
+
+    def find_neighbours(self, position: tuple[int, int]):
+        neighbour_positions = list()
+
+        row, col = position
+        top = (row - 1 >= 0)
+        bottom = (row + 1 < self.rows)
+        left = (col - 1 >= 0)
+        right = (col + 1 < self.cols)
+
+        if top:
+            neighbour_positions.append((row - 1, col))
+        if bottom:
+            neighbour_positions.append((row + 1, col))
+        if left:
+            neighbour_positions.append((row, col - 1))
+        if right:
+            neighbour_positions.append((row, col + 1))
+        if top and left:
+            neighbour_positions.append((row - 1, col - 1))
+        if top and right:
+            neighbour_positions.append((row - 1, col + 1))
+        if bottom and left:
+            neighbour_positions.append((row + 1, col - 1))
+        if bottom and right:
+            neighbour_positions.append((row + 1, col + 1))
+
+        return neighbour_positions
+
+    def expand(self, position: tuple[int, int]):
+
+        # Step 1: forming list of positions of adjacent empty cells
+        expanding_cells = {position: False}
+        while False in expanding_cells.values():
+            for cell_position, was_processed in expanding_cells.items():
+                if not was_processed:
+                    expanding_cells[cell_position] = True
+                    for neighbour in self.find_neighbours(cell_position):
+                        if self.nearby[neighbour] == 0:
+                            if expanding_cells.get(neighbour) is None:
+                                expanding_cells[neighbour] = False
+
+        # Step 2: opening all the neighbour cells to the list from Step 1
+        # TODO
 
     # --- Click methods -------------------------------------------------------
 
@@ -117,7 +159,7 @@ class Logic:
                     pass
                 self.mined[new_bomb_position] = True
                 self.mined[self.click_position] = False
-                self.calculate_neighbours()
+                self.calculate_nearby()
 
         else:  # self.rule == START.EMPTY_CELL
             click_row, click_col = self.click_position
@@ -143,8 +185,8 @@ class Logic:
                     "for the first open click."
                 )
 
-            while self.neighbours[self.click_position] != 0:
-                for i in range(self.neighbours[self.click_position]):
+            while self.nearby[self.click_position] != 0:
+                for i in range(self.nearby[self.click_position]):
                     while self.mined[(
                             new_bomb_position := (
                                     np.random.randint(self.rows),
@@ -157,14 +199,14 @@ class Logic:
                     max(click_row - 1, 0):min(click_row + 2, self.rows + 1),
                     max(click_col - 1, 0):min(click_col + 2, self.cols + 1)
                 ] = False
-                self.calculate_neighbours()
+                self.calculate_nearby()
 
     def _click_left_button(self):
         if not self.opened[self.click_position]:
             if not self.flagged[self.click_position]:
                 if not self.mined[self.click_position]:
                     self.opened[self.click_position] = True
-                    if self.neighbours[self.click_position] == 0:
+                    if self.nearby[self.click_position] == 0:
                         pass
                         # TODO to expand
                 else:
@@ -229,8 +271,8 @@ class Logic:
                 if self.mined[row, col]:
                     line += '█'
                 else:
-                    if self.neighbours[row, col]:
-                        line += str(self.neighbours[row, col])
+                    if self.nearby[row, col]:
+                        line += str(self.nearby[row, col])
                     else:
                         line += '·'
                 line += ' '
@@ -243,8 +285,8 @@ class Logic:
         Exporting minefield matrix with the following definitions:
         (suitable for drawing current state using separate graphics module)
 
-        0   : empty open cell, 0 neighbours
-        1-8 : open cell with 1-8 neighbours
+        0   : empty open cell, 0 nearby bombs
+        1-8 : open cell with 1-8 nearby bombs
         9   : covered cell
         10  : flagged cell
         11  : bomb cell
@@ -257,7 +299,7 @@ class Logic:
         for row in range(self.rows):
             for col in range(self.cols):
                 if self.opened[row, col]:
-                    matrix[row, col] = self.neighbours[row, col]
+                    matrix[row, col] = self.nearby[row, col]
                 else:
                     if not self.is_detonated:
                         if self.flagged[row, col]:
