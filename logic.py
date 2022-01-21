@@ -88,7 +88,7 @@ class Logic:
         self.generate_bombs()
         self.calculate_nearby()
 
-    # -------------------------------------------------------------------------
+    # --- Operational methods -------------------------------------------------
 
     def find_neighbours(self, position: tuple[int, int]):
         neighbour_positions = list()
@@ -118,6 +118,26 @@ class Logic:
 
         return neighbour_positions
 
+    def count_nearby_flags(self, position: tuple[int, int]) -> int:
+        count = 0
+        for neighbour in self.find_neighbours(position):
+            if self.flagged[neighbour]:
+                count += 1
+        return count
+
+    def open_neighbours(self, position: tuple[int, int]):
+
+        # Step 1: checking for detonation due to wrong flags
+        for neighbour in self.find_neighbours(position):
+            if self.flagged[neighbour] ^ self.mined[neighbour]:
+                self.is_detonated = True
+                return
+
+        # Step 2: than the actual opening of the neighbours
+        for neighbour in self.find_neighbours(position):
+            if not self.flagged[neighbour]:
+                self.opened[neighbour] = True
+
     def expand(self, position: tuple[int, int]):
 
         # Step 1: forming list of positions of adjacent empty cells
@@ -139,9 +159,7 @@ class Logic:
         for empty_cell in expanding_cells:
             if not self.flagged[empty_cell]:
                 self.opened[empty_cell] = True
-            for neighbour in self.find_neighbours(empty_cell):
-                if not self.flagged[neighbour]:
-                    self.opened[neighbour] = True
+            self.open_neighbours(empty_cell)
 
     # --- Click methods -------------------------------------------------------
 
@@ -173,6 +191,7 @@ class Logic:
         else:  # self.rule == START.EMPTY_CELL
             click_row, click_col = self.click_position
 
+            # Step 1: validation of possibility to follow the rule
             covered_cells = 9
             # first click position is at the corner of the minefield:
             if self.click_position == (self.rows - 1, self.cols - 1) \
@@ -194,6 +213,7 @@ class Logic:
                     "for the first open click."
                 )
 
+            # Step 2: performing the rule itself
             while self.nearby[self.click_position] != 0:
                 for i in range(self.nearby[self.click_position]):
                     while self.mined[(
@@ -227,8 +247,14 @@ class Logic:
                 not self.flagged[self.click_position]
 
     def _click_middle_button(self):
-        pass
-        # TODO
+        if not self.opened[self.click_position]:
+            self.flagged[self.click_position] = \
+                not self.flagged[self.click_position]
+        else:
+            if self.nearby[self.click_position]:
+                if self.count_nearby_flags(self.click_position) == \
+                        self.nearby[self.click_position]:
+                    self.open_neighbours(self.click_position)
 
     def click(self, click: CLICK, click_position):
         self.click_position = click_position
@@ -268,7 +294,7 @@ class Logic:
         """
         return True if self.is_detonated else False
 
-    # -------------------------------------------------------------------------
+    # --- Export methods ------------------------------------------------------
 
     def print_revealed_minefield(self):
         print()
