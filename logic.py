@@ -61,19 +61,31 @@ class Logic:
     # --- Matrix initialization methods ---------------------------------------
 
     def clear_matrices(self):
-        # self.mined = np.zeros((self.rows, self.cols), np.bool)
+        """
+        Erasing all the matrix layers.
+        """
+
         self.mined = np.zeros_like(self.mined)
         self.opened = np.zeros_like(self.opened)
         self.flagged = np.zeros_like(self.flagged)
         self.nearby = np.zeros_like(self.nearby)
 
     def generate_bombs(self):
+        """
+        Filling up minefield by predefine number of bombs.
+        """
+
         tmp = np.zeros(self.rows * self.cols, self.mined.dtype)
         tmp[:self.bombs] = True
         np.random.shuffle(tmp)
         self.mined = tmp.reshape((self.rows, self.cols))
 
     def calculate_nearby(self):
+        """
+        Calculating throughout the entire minefield
+        number of neighbour bombs for each cell.
+        """
+
         # creating temporary matrix with empty borders around mined field
         m = np.zeros((self.rows + 2, self.cols + 2), self.mined.dtype)
         m[1:self.rows+1, 1:self.cols+1] = self.mined
@@ -84,6 +96,10 @@ class Logic:
                     np.sum(m[row:row+3, col:col+3]) - m[row+1, col+1]
 
     def new_game(self):
+        """
+        New game with the same predefined conditions.
+        """
+
         self.clear_matrices()
         self.generate_bombs()
         self.calculate_nearby()
@@ -91,6 +107,11 @@ class Logic:
     # --- Operational methods -------------------------------------------------
 
     def find_neighbours(self, position: tuple[int, int]):
+        """
+        Compiling list of neighbour cells positions, taking into account
+        possible edge and corner cases, where just part of cells exist.
+        """
+
         neighbour_positions = list()
 
         row, col = position
@@ -119,19 +140,31 @@ class Logic:
         return neighbour_positions
 
     def count_nearby_flags(self, position: tuple[int, int]) -> int:
+        """
+        Return number of set flags on neighbour cells.
+        """
+
         count = 0
         for neighbour in self.find_neighbours(position):
             if self.flagged[neighbour]:
                 count += 1
         return count
 
-    def open_neighbours(self, position: tuple[int, int]):
+    def open_neighbours(
+            self,
+            position: tuple[int, int],
+            do_detonation_check = True
+    ):
+        """
+        Opening the neighbour cells in case if set flags are correct.
+        """
 
         # Step 1: checking for detonation due to wrong flags
-        for neighbour in self.find_neighbours(position):
-            if self.flagged[neighbour] ^ self.mined[neighbour]:
-                self.is_detonated = True
-                return
+        if do_detonation_check:
+            for neighbour in self.find_neighbours(position):
+                if self.flagged[neighbour] ^ self.mined[neighbour]:
+                    self.is_detonated = True
+                    return
 
         # Step 2: than the actual opening of the neighbours
         for neighbour in self.find_neighbours(position):
@@ -139,6 +172,9 @@ class Logic:
                 self.opened[neighbour] = True
 
     def expand(self, position: tuple[int, int]):
+        """
+        Expending area in case opened cell has no bombs nearby.
+        """
 
         # Step 1: forming list of positions of adjacent empty cells
         expanding_cells = {position: False}
@@ -159,7 +195,7 @@ class Logic:
         for empty_cell in expanding_cells:
             if not self.flagged[empty_cell]:
                 self.opened[empty_cell] = True
-            self.open_neighbours(empty_cell)
+            self.open_neighbours(empty_cell, False)
 
     # --- Click methods -------------------------------------------------------
 
@@ -231,6 +267,10 @@ class Logic:
                 self.calculate_nearby()
 
     def _click_left_button(self):
+        """
+        Action to open cell under click position.
+        """
+
         if not self.opened[self.click_position]:
             if not self.flagged[self.click_position]:
                 if not self.mined[self.click_position]:
@@ -242,11 +282,20 @@ class Logic:
                     self.is_detonated = True
 
     def _click_right_button(self):
+        """
+        Action to mark cell by flag under click position.
+        """
+
         if not self.opened[self.click_position]:
             self.flagged[self.click_position] = \
                 not self.flagged[self.click_position]
 
     def _click_middle_button(self):
+        """
+        Combined action to mark cell by flag
+        or to reveal its adjacent cells.
+        """
+
         if not self.opened[self.click_position]:
             self.flagged[self.click_position] = \
                 not self.flagged[self.click_position]
@@ -257,6 +306,10 @@ class Logic:
                     self.open_neighbours(self.click_position)
 
     def click(self, click: CLICK, click_position):
+        """
+        Method to call appropriate action by corresponding click.
+        """
+
         self.click_position = click_position
 
         if click == CLICK.LEFT:
@@ -275,14 +328,23 @@ class Logic:
         """
         Checking if the current state of the game is won.
         """
-        pass
-        # TODO
+
+        # Counting closed cells - that's the only necessary criteria.
+        # Set flags do not matter actually, they are optional
+        # as soon as closed cells are the correct ones.
+        # Otherwise player can't leave opened number of cells
+        # by number of bombs without detonating.
+        if self.rows * self.cols - np.sum(self.opened) == self.bombs:
+            return True
+        else:
+            return False
 
     def game_won_postprocedure(self):
         """
         Presumably: self.is_game_won() == True
         Marking all the remaining closed cells by flags.
         """
+
         for row in range(self.rows):
             for col in range(self.cols):
                 if self.mined[row, col]:
