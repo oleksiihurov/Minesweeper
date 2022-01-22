@@ -14,7 +14,7 @@ Logic, primary purpose and calculations.
 # External imports
 import numpy as np
 
-# project imports
+# Project imports
 from config import START, CLICK
 
 
@@ -89,6 +89,7 @@ class Logic:
         # creating temporary matrix with empty borders around mined field
         m = np.zeros((self.rows + 2, self.cols + 2), self.mined.dtype)
         m[1:self.rows+1, 1:self.cols+1] = self.mined
+
         # calculating number of nearby bombs, excluding self cell bomb
         for row in range(self.rows):
             for col in range(self.cols):
@@ -106,7 +107,10 @@ class Logic:
 
     # --- Operational methods -------------------------------------------------
 
-    def find_neighbours(self, position: tuple[int, int]):
+    def find_neighbours(
+            self,
+            position: tuple[int, int]
+    ) -> list[tuple[int, int]]:
         """
         Compiling list of neighbour cells positions, taking into account
         possible edge and corner cases, where just part of cells exist.
@@ -163,6 +167,7 @@ class Logic:
         if do_detonation_check:
             for neighbour in self.find_neighbours(position):
                 if self.flagged[neighbour] ^ self.mined[neighbour]:
+                    # Game over
                     self.is_detonated = True
                     return
 
@@ -359,6 +364,10 @@ class Logic:
     # --- Export methods ------------------------------------------------------
 
     def print_revealed_minefield(self):
+        """
+        Debug print to console current state of revealed minefield.
+        """
+
         print()
         lines = '┌─' + '──' * self.cols + '┐' + '\n'
         for row in range(self.rows):
@@ -377,6 +386,10 @@ class Logic:
         print(lines)
 
     def print_covered_minefield(self):
+        """
+        Debug print to console current state of covered minefield.
+        """
+
         print()
         lines = '╔═' + '══' * self.cols + '╗' + '\n'
         for row in range(self.rows):
