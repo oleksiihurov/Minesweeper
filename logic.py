@@ -58,6 +58,8 @@ class Logic:
         # click position in format: (row, column)
         self.click_position: tuple[int, int] = (0, 0)
 
+        self.new_game()
+
     # --- Matrix initialization methods ---------------------------------------
 
     def clear_matrices(self):
@@ -245,8 +247,10 @@ class Logic:
                 if click_row == 0 or click_row == self.rows - 1 \
                         or click_col == 0 or click_col == self.cols - 1:
                     covered_cells = 6
+            # TODO consider case for 1x8 minefield
 
             # validation by exceeding number of bombs
+            # TODO instead of exception - redirect to START.NO_BOMB case
             if self.bombs + covered_cells >= (self.rows * self.cols):
                 raise ValueError(
                     "Too many bombs on the minefield "
