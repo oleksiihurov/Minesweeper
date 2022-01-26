@@ -77,7 +77,7 @@ class GUI:
     ctypes.windll.user32.SetProcessDPIAware()
 
     # dimensions
-    SCALE = 1  # 1 == 100%; 2 == 200%; etc.
+    SCALE = 3  # 1 == 100%; 2 == 200%; etc.
     BASE_CELL_SIZE = 16  # 16x16 px
     CELL_SIZE = BASE_CELL_SIZE * SCALE
     BORDER = 10 * SCALE  # px
