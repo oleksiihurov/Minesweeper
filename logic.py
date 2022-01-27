@@ -15,7 +15,7 @@ Logic, primary purpose and calculations.
 import numpy as np
 
 # Project imports
-from config import START, CLICK
+from config import START, CLICK, CELLS
 
 
 # --- Logic class -------------------------------------------------------------
@@ -423,16 +423,8 @@ class Logic:
 
     def matrix_to_draw(self) -> np.ndarray:
         """
-        Exporting minefield matrix with the following definitions:
+        Exporting minefield matrix with the definitions from CELL enum.
         (suitable for drawing current state using separate graphics module)
-
-        0   : empty open cell, 0 nearby bombs
-        1-8 : open cell with 1-8 nearby bombs
-        9   : covered cell
-        10  : flagged cell
-        11  : bomb cell
-        12  : wrong bomb cell
-        13  : detonated cell
         """
 
         matrix = np.zeros((self.rows, self.cols), np.uint8)
@@ -444,27 +436,27 @@ class Logic:
                 else:
                     if not self.is_detonated:
                         if self.flagged[row, col]:
-                            matrix[row, col] = 10
+                            matrix[row, col] = CELLS.index('flagged')
                         else:
-                            matrix[row, col] = 9
+                            matrix[row, col] = CELLS.index('closed')
                     else:
                         if self.click_position == (row, col) \
                                 and self.mined[row, col] \
                                 and not self.flagged[row, col]:
-                            matrix[row, col] = 13
+                            matrix[row, col] = CELLS.index('detonated')
                             break
                         if self.flagged[row, col] \
                                 and not self.mined[row, col]:
-                            matrix[row, col] = 12
+                            matrix[row, col] = CELLS.index('not_mined')
                             break
                         if self.mined[row, col] \
                                 and not self.flagged[row, col]:
-                            matrix[row, col] = 11
+                            matrix[row, col] = CELLS.index('mined')
                             break
                         if self.mined[row, col] \
                                 and self.flagged[row, col]:
-                            matrix[row, col] = 10
+                            matrix[row, col] = CELLS.index('flagged')
                             break
-                        matrix[row, col] = 9
+                        matrix[row, col] = CELLS.index('closed')
 
         return matrix

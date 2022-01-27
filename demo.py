@@ -79,6 +79,7 @@ class Demo:
         self.graphics.draw_bombs_score(self.logic.get_bombs_score())
         self.graphics.draw_time_score(0)
         self.graphics.draw_face_button(FACE.READY)
+        self.graphics.draw_minefield(self.logic.matrix_to_draw())
 
     def graphics_handler(self):
         """Redrawing the screen."""

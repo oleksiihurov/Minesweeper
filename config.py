@@ -48,6 +48,28 @@ class FACE(Enum):
     PRESSED = auto()  # pressed state of the button
 
 
+CELLS = [
+    'empty',
+    'nearby_1',
+    'nearby_2',
+    'nearby_3',
+    'nearby_4',
+    'nearby_5',
+    'nearby_6',
+    'nearby_7',
+    'nearby_8',
+
+    'closed',
+    'flagged',
+    'marked',
+    'marked_pressed',
+    'mined',
+    'not_mined',
+    'detonated',
+    'pressed'
+]
+
+
 # --- Dataclasses -------------------------------------------------------------
 
 @dataclass

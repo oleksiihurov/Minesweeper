@@ -20,7 +20,7 @@ from numpy import ndarray
 import pygame as pg
 
 # Project imports
-from config import FACE, GAME, GUI
+from config import FACE, CELLS, GAME, GUI
 
 
 # --- Graphics ----------------------------------------------------------------
@@ -48,7 +48,9 @@ class Graphics:
     # --- Sprites methods -----------------------------------------------------
 
     def load_sprites(self):
-        """Compiling dictionary of separate sprite images from the file."""
+        """
+        Compiling dictionary of separate sprite images from the file.
+        """
 
         # Step 1: reading sprites from files
         image = pg.image.load(path.join('assets', 'sprites.png')).convert()
@@ -71,21 +73,6 @@ class Graphics:
                     (w * GUI.SCALE, h * GUI.SCALE)
                 )
             self.sprites[name] = sprite
-
-        # TODO DEBUG
-        # x = 0
-        # y = 0
-        # for i, sprite in enumerate(self.sprites.values()):
-        #     rect: pg.Rect = sprite.get_rect()
-        #     rect.move_ip(x, y)
-        #     x += rect.width
-        #     if i == 14:
-        #         x = 0
-        #         y = 100
-        #     if i == 30:
-        #         x = 0
-        #         y = 200
-        #     self.screen.blit(sprite, rect)
 
     def build_frame(self):
         """
@@ -263,7 +250,19 @@ class Graphics:
         self.screen.blit(sprite, rect)
 
     def draw_minefield(self, matrix: ndarray):
-        pass
+        """
+        Reflecting current state of the minefield.
+        """
+
+        for row in range(GAME.ROWS):
+            for col in range(GAME.COLS):
+                sprite = self.sprites['cell_' + CELLS[matrix[row, col]]]
+                rect = sprite.get_rect()
+                rect.topleft = (
+                    GUI.FIELD_X_TOP_LEFT + col * GUI.CELL_SIZE,
+                    GUI.FIELD_Y_TOP_LEFT + row * GUI.CELL_SIZE
+                )
+                self.screen.blit(sprite, rect)
 
     # --- Operational methods -------------------------------------------------
 
