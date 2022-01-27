@@ -45,6 +45,7 @@ class Logic:
             shape = (self.rows, self.cols),
             dtype = np.bool
         )
+        # TODO add marks
         # matrix layer which represents number of bombs nearby for each cell
         self.nearby = np.empty(
             shape = (self.rows, self.cols),
@@ -332,6 +333,12 @@ class Logic:
             self._click_middle_button()
 
     # --- Checking game state methods -----------------------------------------
+
+    def get_bombs_score(self) -> int:
+        """
+        Counting number of left bombs to flag on the minefield.
+        """
+        return int(self.bombs - np.sum(self.flagged))
 
     def is_game_won(self) -> bool:
         """

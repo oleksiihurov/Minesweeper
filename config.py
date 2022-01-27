@@ -40,6 +40,14 @@ class CLICK(Enum):
     MIDDLE = auto()  # to flag it or reveal its adjacent cells
 
 
+class FACE(Enum):
+    READY = auto()  # regular smiley face button
+    ACTIVE = auto()  # face while clicking
+    LOSE = auto()  # sad face on lost game
+    WIN = auto()  # boss face on won game
+    PRESSED = auto()  # pressed state of the button
+
+
 # --- Dataclasses -------------------------------------------------------------
 
 @dataclass
@@ -77,7 +85,7 @@ class GUI:
     ctypes.windll.user32.SetProcessDPIAware()
 
     # dimensions
-    SCALE = 2  # 1 == 100%; 2 == 200%; etc.
+    SCALE = 2  # 1 == 100%; 2 == 200%; etc. Must be integer and positive
     BASE_CELL_SIZE = 16  # 16x16 px
     CELL_SIZE = BASE_CELL_SIZE * SCALE
     BORDER = 10 * SCALE  # px

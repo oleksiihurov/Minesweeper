@@ -20,7 +20,7 @@ from numpy import ndarray
 import pygame as pg
 
 # Project imports
-from config import GAME, GUI
+from config import FACE, GAME, GUI
 
 
 # --- Graphics ----------------------------------------------------------------
@@ -41,14 +41,9 @@ class Graphics:
         pg.display.set_icon(pg.image.load(path.join('assets', 'favicon.ico')))
 
         # Preparing sprites
-        self.sprites: dict[str: pg.Surface] = dict()
+        self.sprites: dict[str, pg.Surface] = dict()
         self.load_sprites()
         self.build_frame()
-
-        # Initial drawing
-        self.draw_bombs()
-        self.draw_face_button()
-        self.draw_time()
 
     # --- Sprites methods -----------------------------------------------------
 
@@ -93,6 +88,11 @@ class Graphics:
         #     self.screen.blit(sprite, rect)
 
     def build_frame(self):
+        """
+        Building full frame surface according to the minefield size,
+        and drawing it on the screen.
+        """
+
         frame = pg.Surface((GUI.SCREEN_WIDTH, GUI.SCREEN_HEIGHT))
 
         # frame line #1
@@ -206,14 +206,61 @@ class Graphics:
 
     # --- Drawing methods -----------------------------------------------------
 
-    def draw_bombs(self):
-        pass
+    def draw_bombs_score(self, bombs_score: int):
+        """
+        Reflecting current bombs score on the panel.
+        """
 
-    def draw_face_button(self):
-        pass
+        # compiling 3-symbol score number as a string
+        if bombs_score >= 0:
+            string_score = format(bombs_score % 1000, '0>3')
+        else:
+            string_score = '-' + format(abs(bombs_score) % 100, '0>2')
 
-    def draw_time(self):
-        pass
+        # drawing corresponding digits
+        for index, symbol in enumerate(string_score):
+            sprite = self.sprites['digit_' + symbol]
+            rect = sprite.get_rect()
+            rect.topleft = (
+                GUI.PANEL_X_TOP_LEFT + (5 + index * 13) * GUI.SCALE,
+                GUI.PANEL_Y_TOP_LEFT + 4 * GUI.SCALE
+            )
+            self.screen.blit(sprite, rect)
+
+    def draw_time_score(self, time_score: int):
+        """
+        Reflecting current time score on the panel.
+        """
+
+        # compiling 3-symbol score number as a string
+        if 0 <= time_score <= 999:
+            string_score = format(time_score, '0>3')
+        else:
+            string_score = '999'
+
+        # drawing corresponding digits
+        for index, symbol in enumerate(string_score):
+            sprite = self.sprites['digit_' + symbol]
+            rect = sprite.get_rect()
+            rect.topright = (
+                GUI.PANEL_X_TOP_LEFT + GUI.PANEL_WIDTH
+                - (5 + (2 - index) * 13) * GUI.SCALE,
+                GUI.PANEL_Y_TOP_LEFT + 4 * GUI.SCALE
+            )
+            self.screen.blit(sprite, rect)
+
+    def draw_face_button(self, face: FACE):
+        """
+        Reflecting current state of the face button.
+        """
+
+        sprite = self.sprites['face_button_' + face.name.lower()]
+        rect = sprite.get_rect()
+        rect.midtop = (
+            GUI.PANEL_X_CENTER,
+            GUI.PANEL_Y_TOP_LEFT + 3 * GUI.SCALE
+        )
+        self.screen.blit(sprite, rect)
 
     def draw_minefield(self, matrix: ndarray):
         pass

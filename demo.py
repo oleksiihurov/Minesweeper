@@ -15,7 +15,7 @@ Main program. Entry point.
 import pygame as pg
 
 # Project imports
-from config import CLICK, GAME, GUI
+from config import CLICK, FACE, GAME, GUI
 from logic import Logic
 from graphics import Graphics
 
@@ -76,7 +76,9 @@ class Demo:
 
     def actions_handler(self):
         """Program actions in the main loop."""
-        pass
+        self.graphics.draw_bombs_score(self.logic.get_bombs_score())
+        self.graphics.draw_time_score(0)
+        self.graphics.draw_face_button(FACE.READY)
 
     def graphics_handler(self):
         """Redrawing the screen."""
