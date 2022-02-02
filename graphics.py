@@ -36,6 +36,10 @@ class Graphics:
         pg.init()
         self.screen = pg.display.set_mode(resolution)
 
+        # Setup process
+        self.clock = pg.time.Clock()
+        self.time_delta = None
+
         # Taskbar appearance
         pg.display.set_caption('Minesweeper')
         pg.display.set_icon(pg.image.load(path.join('assets', 'favicon.ico')))
@@ -265,6 +269,10 @@ class Graphics:
                 self.screen.blit(sprite, rect)
 
     # --- Operational methods -------------------------------------------------
+
+    def clock_tick(self):
+        """Ticking clock."""
+        self.time_delta = self.clock.tick(GUI.FPS)
 
     @staticmethod
     def show():

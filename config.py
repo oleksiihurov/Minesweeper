@@ -131,6 +131,8 @@ class GUI:
 
     RESOLUTION = (SCREEN_WIDTH, SCREEN_HEIGHT)
 
+    FPS = 60
+
 
 # --- Config Validation -------------------------------------------------------
 

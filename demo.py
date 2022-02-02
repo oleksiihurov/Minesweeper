@@ -51,6 +51,7 @@ class Demo:
 
     def loop_handler(self):
         """Resetting flags."""
+        self.graphics.clock_tick()
         self.is_mousemotion = False
         return self.is_running
 
