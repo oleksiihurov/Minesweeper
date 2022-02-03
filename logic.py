@@ -73,6 +73,14 @@ class Logic:
         self.flagged = np.zeros_like(self.flagged)
         self.nearby = np.zeros_like(self.nearby)
 
+    def reset_state(self):
+        """
+        Resetting state of the game to the initial.
+        """
+
+        self.is_started = False
+        self.is_detonated = False
+
     def generate_bombs(self):
         """
         Filling up minefield by predefine number of bombs.
@@ -105,6 +113,7 @@ class Logic:
         """
 
         self.clear_matrices()
+        self.reset_state()
         self.generate_bombs()
         self.calculate_nearby()
 
@@ -317,7 +326,7 @@ class Logic:
                         self.nearby[self.click_position]:
                     self.open_neighbours(self.click_position)
 
-    def action(self, action: ACTION, click_position):
+    def perform_action(self, action: ACTION, click_position):
         """
         Method to call appropriate action by corresponding click.
         """
@@ -330,8 +339,11 @@ class Logic:
             self.action_to_open()
         elif action == ACTION.TO_LABEL:
             self.action_to_label()
-        else:  # action == ACTION.TO_REVEAL
+        elif action == ACTION.TO_REVEAL:
             self.action_to_reveal()
+        else:  # action == ACTION.PRESSED
+            pass
+            # TODO
 
     # --- Checking game state methods -----------------------------------------
 

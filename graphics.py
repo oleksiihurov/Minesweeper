@@ -199,13 +199,18 @@ class Graphics:
 
         self.screen.blit(frame, frame.get_rect())
 
-    def convert_coords(self, coords: tuple[int, int]) -> tuple[int, int]:
+    @staticmethod
+    def convert_coords(mouse_coords: tuple[int, int]) -> tuple[int, int]:
         """
         Converting mouse coords (x, y)
-        to minefield cell position (row, column).
+        to minefield cell position (row, col).
+        Presumably mouse cursor is inside minefield rect.
         """
-        pass
-        # TODO
+
+        x, y = mouse_coords
+        col = (x - GUI.FIELD_X_TOP_LEFT) // GUI.CELL_SIZE
+        row = (y - GUI.FIELD_Y_TOP_LEFT) // GUI.CELL_SIZE
+        return row, col
 
     # --- Defining methods ----------------------------------------------------
 

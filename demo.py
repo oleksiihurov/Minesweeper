@@ -37,14 +37,14 @@ class Demo:
         self.graphics = Graphics(GUI.RESOLUTION)
 
         # TODO Debug
-        self.logic.action(ACTION.TO_LABEL, (1, 1))
-        self.logic.action(ACTION.TO_OPEN, (1, 2))
+        self.logic.perform_action(ACTION.TO_LABEL, (1, 1))
+        self.logic.perform_action(ACTION.TO_OPEN, (1, 2))
 
-        self.logic.action(ACTION.TO_OPEN, (6, 8))
+        self.logic.perform_action(ACTION.TO_OPEN, (6, 8))
 
-        self.logic.action(ACTION.TO_LABEL, (6, 26))
-        self.logic.action(ACTION.TO_LABEL, (8, 23))
-        self.logic.action(ACTION.TO_OPEN, (9, 24))
+        self.logic.perform_action(ACTION.TO_LABEL, (6, 26))
+        self.logic.perform_action(ACTION.TO_LABEL, (8, 23))
+        self.logic.perform_action(ACTION.TO_OPEN, (9, 24))
 
         self.logic.print_revealed_minefield()
         self.logic.print_covered_minefield()
@@ -105,6 +105,13 @@ class Demo:
                 if self.action == ACTION.TO_OPEN:
                     self.logic.new_game()
                     print('new game')
+
+            if self.graphics.minefield.collidepoint(self.mouse_position):
+                print(f'cell: {self.graphics.convert_coords(self.mouse_position)}')
+                self.logic.perform_action(
+                    self.action,
+                    self.graphics.convert_coords(self.mouse_position)
+                )
 
         self.graphics.draw_bombs_score(self.logic.get_bombs_score())
         self.graphics.draw_time_score(0)
