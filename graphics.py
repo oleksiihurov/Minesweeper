@@ -20,7 +20,7 @@ from numpy import ndarray
 import pygame as pg
 
 # Project imports
-from config import FACE, CELLS, GAME, GUI
+from config import FACE, CODE_TO_CELL, GAME, GUI
 
 
 # --- Graphics ----------------------------------------------------------------
@@ -48,6 +48,10 @@ class Graphics:
         self.sprites: dict[str, pg.Surface] = dict()
         self.load_sprites()
         self.build_frame()
+
+        # Defining clickable objects
+        self.face_button = self.define_face_button_rect()
+        self.minefield = self.define_minefield_rect()
 
     # --- Sprites methods -----------------------------------------------------
 
@@ -195,7 +199,71 @@ class Graphics:
 
         self.screen.blit(frame, frame.get_rect())
 
+    def convert_coords(self, coords: tuple[int, int]) -> tuple[int, int]:
+        """
+        Converting mouse coords (x, y)
+        to minefield cell position (row, column).
+        """
+        pass
+        # TODO
+
+    # --- Defining methods ----------------------------------------------------
+
+    def define_face_button_rect(self) -> pg.Rect:
+        """
+        Defining face button rect for checking colliding event once clicked.
+        """
+
+        sprite = self.sprites['face_button_ready']
+        rect = sprite.get_rect()
+        rect.midtop = (
+            GUI.PANEL_X_CENTER,
+            GUI.PANEL_Y_TOP_LEFT + 3 * GUI.SCALE
+        )
+        return rect
+
+    @staticmethod
+    def define_minefield_rect() -> pg.Rect:
+        """
+        Defining minefield rect for checking colliding event once clicked.
+        """
+
+        return pg.Rect(
+            GUI.FIELD_X_TOP_LEFT,
+            GUI.FIELD_Y_TOP_LEFT,
+            GAME.COLS * GUI.CELL_SIZE,
+            GAME.ROWS * GUI.CELL_SIZE
+        )
+
     # --- Drawing methods -----------------------------------------------------
+
+    def draw_face_button(self, face: FACE):
+        """
+        Reflecting current state of the face button.
+        """
+
+        sprite = self.sprites['face_button_' + face.name.lower()]
+        rect = sprite.get_rect()
+        rect.midtop = (
+            GUI.PANEL_X_CENTER,
+            GUI.PANEL_Y_TOP_LEFT + 3 * GUI.SCALE
+        )
+        self.screen.blit(sprite, rect)
+
+    def draw_minefield(self, matrix: ndarray):
+        """
+        Reflecting current state of the minefield.
+        """
+
+        for row in range(GAME.ROWS):
+            for col in range(GAME.COLS):
+                sprite = self.sprites['cell_' + CODE_TO_CELL[matrix[row, col]]]
+                rect = sprite.get_rect()
+                rect.topleft = (
+                    GUI.FIELD_X_TOP_LEFT + col * GUI.CELL_SIZE,
+                    GUI.FIELD_Y_TOP_LEFT + row * GUI.CELL_SIZE
+                )
+                self.screen.blit(sprite, rect)
 
     def draw_bombs_score(self, bombs_score: int):
         """
@@ -239,34 +307,6 @@ class Graphics:
                 GUI.PANEL_Y_TOP_LEFT + 4 * GUI.SCALE
             )
             self.screen.blit(sprite, rect)
-
-    def draw_face_button(self, face: FACE):
-        """
-        Reflecting current state of the face button.
-        """
-
-        sprite = self.sprites['face_button_' + face.name.lower()]
-        rect = sprite.get_rect()
-        rect.midtop = (
-            GUI.PANEL_X_CENTER,
-            GUI.PANEL_Y_TOP_LEFT + 3 * GUI.SCALE
-        )
-        self.screen.blit(sprite, rect)
-
-    def draw_minefield(self, matrix: ndarray):
-        """
-        Reflecting current state of the minefield.
-        """
-
-        for row in range(GAME.ROWS):
-            for col in range(GAME.COLS):
-                sprite = self.sprites['cell_' + CELLS[matrix[row, col]]]
-                rect = sprite.get_rect()
-                rect.topleft = (
-                    GUI.FIELD_X_TOP_LEFT + col * GUI.CELL_SIZE,
-                    GUI.FIELD_Y_TOP_LEFT + row * GUI.CELL_SIZE
-                )
-                self.screen.blit(sprite, rect)
 
     # --- Operational methods -------------------------------------------------
 

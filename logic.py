@@ -15,7 +15,7 @@ Logic, primary purpose and calculations.
 import numpy as np
 
 # Project imports
-from config import START, CLICK, CELLS
+from config import START, ACTION, CELL_TO_CODE
 
 
 # --- Logic class -------------------------------------------------------------
@@ -207,14 +207,15 @@ class Logic:
 
     # --- Click methods -------------------------------------------------------
 
-    def _before_first_click_left_button(self):
+    def _before_first_action_to_open(self) -> bool:
         """
         Rearranging bombs under position of the first open click
         according to current game rule.
+        Return True in case of successful performing.
         """
 
         if self.flagged[self.click_position]:
-            return
+            return False
 
         if self.rule == START.AS_IS:
             pass
@@ -276,7 +277,9 @@ class Logic:
                 ] = False
                 self.calculate_nearby()
 
-    def _click_left_button(self):
+        return True
+
+    def action_to_open(self):
         """
         Action to open cell under click position.
         """
@@ -291,19 +294,18 @@ class Logic:
                     # Game over
                     self.is_detonated = True
 
-    def _click_right_button(self):
+    def action_to_label(self):
         """
-        Action to mark cell by flag under click position.
+        Action to label cell by flag or mark under click position.
         """
 
         if not self.opened[self.click_position]:
             self.flagged[self.click_position] = \
                 not self.flagged[self.click_position]
 
-    def _click_middle_button(self):
+    def action_to_reveal(self):
         """
-        Combined action to mark cell by flag
-        or to reveal its adjacent cells.
+        Combined action to label cell or to reveal its adjacent cells.
         """
 
         if not self.opened[self.click_position]:
@@ -315,22 +317,21 @@ class Logic:
                         self.nearby[self.click_position]:
                     self.open_neighbours(self.click_position)
 
-    def click(self, click: CLICK, click_position):
+    def action(self, action: ACTION, click_position):
         """
         Method to call appropriate action by corresponding click.
         """
 
         self.click_position = click_position
 
-        if click == CLICK.LEFT:
+        if action == ACTION.TO_OPEN:
             if not self.is_started:
-                self._before_first_click_left_button()
-                self.is_started = True
-            self._click_left_button()
-        elif click == CLICK.RIGHT:
-            self._click_right_button()
-        else:  # click == CLICK.MIDDLE
-            self._click_middle_button()
+                self.is_started = self._before_first_action_to_open()
+            self.action_to_open()
+        elif action == ACTION.TO_LABEL:
+            self.action_to_label()
+        else:  # action == ACTION.TO_REVEAL
+            self.action_to_reveal()
 
     # --- Checking game state methods -----------------------------------------
 
@@ -436,27 +437,27 @@ class Logic:
                 else:
                     if not self.is_detonated:
                         if self.flagged[row, col]:
-                            matrix[row, col] = CELLS.index('flagged')
+                            matrix[row, col] = CELL_TO_CODE['flagged']
                         else:
-                            matrix[row, col] = CELLS.index('closed')
+                            matrix[row, col] = CELL_TO_CODE['closed']
                     else:
                         if self.click_position == (row, col) \
                                 and self.mined[row, col] \
                                 and not self.flagged[row, col]:
-                            matrix[row, col] = CELLS.index('detonated')
+                            matrix[row, col] = CELL_TO_CODE['detonated']
                             break
                         if self.flagged[row, col] \
                                 and not self.mined[row, col]:
-                            matrix[row, col] = CELLS.index('not_mined')
+                            matrix[row, col] = CELL_TO_CODE['not_mined']
                             break
                         if self.mined[row, col] \
                                 and not self.flagged[row, col]:
-                            matrix[row, col] = CELLS.index('mined')
+                            matrix[row, col] = CELL_TO_CODE['mined']
                             break
                         if self.mined[row, col] \
                                 and self.flagged[row, col]:
-                            matrix[row, col] = CELLS.index('flagged')
+                            matrix[row, col] = CELL_TO_CODE['flagged']
                             break
-                        matrix[row, col] = CELLS.index('closed')
+                        matrix[row, col] = CELL_TO_CODE['closed']
 
         return matrix

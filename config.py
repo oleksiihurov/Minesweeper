@@ -34,21 +34,22 @@ class PRESET(Enum):
     EXPERT = auto()  # size: 30x16, bombs: 99
 
 
-class CLICK(Enum):
-    LEFT = auto()  # to open
-    RIGHT = auto()  # to flag
-    MIDDLE = auto()  # to flag it or reveal its adjacent cells
+class ACTION(Enum):
+    PRESSED = auto()  # on mouse click down event (before click up event)
+    TO_OPEN = auto()  # to open cell
+    TO_LABEL = auto()  # to flag or mark cell
+    TO_REVEAL = auto()  # to label it or reveal its adjacent cells
 
 
 class FACE(Enum):
     READY = auto()  # regular smiley face button
-    ACTIVE = auto()  # face while clicking
+    ACTIVE = auto()  # face while opening cell
     LOSE = auto()  # sad face on lost game
     WIN = auto()  # boss face on won game
     PRESSED = auto()  # pressed state of the button
 
 
-CELLS = [
+CODE_TO_CELL = [
     'empty',
     'nearby_1',
     'nearby_2',
@@ -58,7 +59,6 @@ CELLS = [
     'nearby_6',
     'nearby_7',
     'nearby_8',
-
     'closed',
     'flagged',
     'marked',
@@ -68,6 +68,8 @@ CELLS = [
     'detonated',
     'pressed'
 ]
+
+CELL_TO_CODE = {k: v for v, k in enumerate(CODE_TO_CELL)}
 
 
 # --- Dataclasses -------------------------------------------------------------
