@@ -2,7 +2,7 @@
 # "Minesweeper" tribute to original online variations of the game:
 # https://minesweeperonline.com
 # https://minesweeper.online
-# Copyright (c) Jan 2022 Oleksii Hurov
+# Copyright (c) Feb 2022 Oleksii Hurov
 # -----------------------------------------------------------------------------
 
 """

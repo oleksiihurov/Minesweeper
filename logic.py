@@ -2,7 +2,7 @@
 # "Minesweeper" tribute to original online variations of the game:
 # https://minesweeperonline.com
 # https://minesweeper.online
-# Copyright (c) Jan 2022 Oleksii Hurov
+# Copyright (c) Feb 2022 Oleksii Hurov
 # -----------------------------------------------------------------------------
 
 """
@@ -473,29 +473,21 @@ class Logic:
                 if self.opened[row, col]:
                     matrix[row, col] = self.nearby[row, col]
                 else:
+                    matrix[row, col] = CELL_TO_CODE['closed']
                     if not self.is_detonated:
                         if self.flagged[row, col]:
                             matrix[row, col] = CELL_TO_CODE['flagged']
-                        else:
-                            matrix[row, col] = CELL_TO_CODE['closed']
                     else:
-                        if self.click_position == (row, col) \
-                                and self.mined[row, col] \
-                                and not self.flagged[row, col]:
+                        if self.mined[row, col]:
+                            if self.flagged[row, col]:
+                                matrix[row, col] = CELL_TO_CODE['flagged']
+                            else:
+                                matrix[row, col] = CELL_TO_CODE['mined']
+                        else:
+                            if self.flagged[row, col]:
+                                matrix[row, col] = CELL_TO_CODE['not_mined']
+
+                        if self.click_position == (row, col):
                             matrix[row, col] = CELL_TO_CODE['detonated']
-                            break
-                        if self.flagged[row, col] \
-                                and not self.mined[row, col]:
-                            matrix[row, col] = CELL_TO_CODE['not_mined']
-                            break
-                        if self.mined[row, col] \
-                                and not self.flagged[row, col]:
-                            matrix[row, col] = CELL_TO_CODE['mined']
-                            break
-                        if self.mined[row, col] \
-                                and self.flagged[row, col]:
-                            matrix[row, col] = CELL_TO_CODE['flagged']
-                            break
-                        matrix[row, col] = CELL_TO_CODE['closed']
 
         return matrix

@@ -2,7 +2,7 @@
 # "Minesweeper" tribute to original online variations of the game:
 # https://minesweeperonline.com
 # https://minesweeper.online
-# Copyright (c) Jan 2022 Oleksii Hurov
+# Copyright (c) Feb 2022 Oleksii Hurov
 # -----------------------------------------------------------------------------
 
 """
@@ -161,7 +161,12 @@ class Demo:
 
         # Performing actual reactions.
 
-        # self.face_button_status = FACE.READY
+        if self.logic.is_game_won():
+            self.logic.game_won_postprocedure()
+            self.face_button_status = FACE.WIN
+
+        if self.logic.is_game_lost():
+            self.face_button_status = FACE.LOSE
 
         if self.action is not None:
 
@@ -179,6 +184,7 @@ class Demo:
                     pass
                     # TODO
                 if self.action == ACTION.TO_PRESS:
+                    self.face_button_status = FACE.ACTIVE
                     self.logic.find_pressed_cells(
                         self.graphics.convert_coords(self.mouse_position)
                     )
