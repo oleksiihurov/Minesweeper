@@ -34,8 +34,17 @@ class PRESET(Enum):
     EXPERT = auto()  # size: 30x16, bombs: 99
 
 
+class EVENT(Enum):
+    LEFT_MOUSE_BUTTON_DOWN = auto()
+    LEFT_MOUSE_BUTTON_UP = auto()
+    RIGHT_MOUSE_BUTTON_DOWN = auto()
+    RIGHT_MOUSE_BUTTON_UP = auto()
+    SPACE_BAR_DOWN = auto()
+
+
 class ACTION(Enum):
-    PRESSED = auto()  # on mouse click down event (before click up event)
+    TO_HOVER = auto()
+    TO_PRESS = auto()
     TO_OPEN = auto()  # to open cell
     TO_LABEL = auto()  # to flag or mark cell
     TO_REVEAL = auto()  # to label it or reveal its adjacent cells

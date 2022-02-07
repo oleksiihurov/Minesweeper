@@ -22,6 +22,7 @@ def main():
     while demo.loop_handler():
         demo.events_handler()
         demo.actions_handler()
+        demo.reactions_handler()
         demo.graphics_handler()
 
 

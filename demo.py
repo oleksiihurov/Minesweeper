@@ -15,7 +15,7 @@ Main program. Entry point.
 import pygame as pg
 
 # Project imports
-from config import ACTION, FACE, GAME, GUI
+from config import EVENT, ACTION, FACE, GAME, GUI
 from logic import Logic
 from graphics import Graphics
 
@@ -30,7 +30,10 @@ class Demo:
         self.is_running = True  # running main program flag
         self.is_mousemotion = False  # flag of the mouse pointer movement event
         self.mouse_position = None  # current mouse position
-        self.action = None  # current action performed on grabbing events stage
+        self.event = None  # current occurred event from mouse or keys
+        self.action = None  # current action performed based on event
+        self.face_button_status = FACE.READY
+        self.interaction_object = None
 
         # Setup graphics
         self.logic = Logic(GAME)
@@ -55,11 +58,16 @@ class Demo:
         """Resetting flags."""
         self.graphics.clock_tick()
         self.is_mousemotion = False
+        self.event = None
         self.action = None
         return self.is_running
 
     def events_handler(self):
         """Reacting to the events from mouse/keyboard or window manipulation."""
+
+        # Tracking both kinds of events: on press and release of mouse buttons.
+        # Tracking only pressing events for keyboard keys.
+
         for event in pg.event.get():
 
             # events from main window
@@ -72,52 +80,115 @@ class Demo:
                 self.is_mousemotion = True
                 self.mouse_position = pg.mouse.get_pos()
 
-            if event.type == pg.MOUSEBUTTONDOWN:
-                if event.button == 1:  # Left button click press
-                    self.action = ACTION.PRESSED
-                    print(f'{self.action.name} at {self.mouse_position}')
-                if event.button == 3:  # Right button click press
-                    self.action = ACTION.TO_LABEL
-                    print(f'{self.action.name} at {self.mouse_position}')
+            left_button, middle_button, right_button = pg.mouse.get_pressed()
+            if left_button:
+                self.event = EVENT.LEFT_MOUSE_BUTTON_DOWN
+                print(f'{self.event.name} at {self.mouse_position}')
+            if right_button:
+                self.event = EVENT.RIGHT_MOUSE_BUTTON_DOWN
+                print(f'{self.event.name} at {self.mouse_position}')
 
             if event.type == pg.MOUSEBUTTONUP:
                 if event.button == 1:  # Left button click release
-                    self.action = ACTION.TO_OPEN
-                    print(f'{self.action.name} at {self.mouse_position}')
+                    self.event = EVENT.LEFT_MOUSE_BUTTON_UP
+                    print(f'{self.event.name} at {self.mouse_position}')
+                if event.button == 3:  # Right button click release
+                    self.event = EVENT.RIGHT_MOUSE_BUTTON_UP
+                    print(f'{self.event.name} at {self.mouse_position}')
 
             # events from keyboard
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_ESCAPE:  # Esc key
                     self.is_running = False
-                if event.key == pg.K_SPACE:  # Space bar key
-                    self.action = ACTION.TO_REVEAL
-                    print(f'{self.action.name} at {self.mouse_position}')
+                if event.key == pg.K_SPACE:  # Space bar key press
+                    self.event = EVENT.SPACE_BAR_DOWN
+                    print(f'{self.event.name} at {self.mouse_position}')
 
     def actions_handler(self):
         """Program actions in the main loop."""
 
-        face_status = FACE.READY
+        # On pressing events we determining interaction (clickable) objects.
+        # On releasing events we calling actions underneath objects.
+        # That is done to give users ability to change their minds,
+        # once performing the mouse click acton.
+
+        # order is matter of the inner if's
+        if self.event is not None:
+
+            if self.graphics.face_button.collidepoint(self.mouse_position):
+                self.interaction_object = self.graphics.face_button
+                self.action = ACTION.TO_HOVER
+
+                if self.event == EVENT.LEFT_MOUSE_BUTTON_DOWN:
+                    self.face_button_status = FACE.PRESSED
+                    self.action = ACTION.TO_PRESS
+                if self.event == EVENT.LEFT_MOUSE_BUTTON_UP:
+                    self.face_button_status = FACE.PRESSED
+                    self.action = ACTION.TO_OPEN
+
+            else:
+                self.face_button_status = FACE.READY
+
+            if self.graphics.minefield.collidepoint(self.mouse_position):
+                self.interaction_object = self.graphics.minefield
+                self.action = ACTION.TO_HOVER
+
+                if self.event == EVENT.LEFT_MOUSE_BUTTON_DOWN:
+                    self.action = ACTION.TO_PRESS
+                if self.event == EVENT.RIGHT_MOUSE_BUTTON_DOWN:
+                    pass
+
+                if self.event == EVENT.LEFT_MOUSE_BUTTON_UP:
+                    self.action = ACTION.TO_OPEN
+                if self.event == EVENT.RIGHT_MOUSE_BUTTON_UP:
+                    self.action = ACTION.TO_LABEL
+
+                if self.event == EVENT.SPACE_BAR_DOWN:
+                    if self.interaction_object == self.graphics.minefield:
+                        self.action = ACTION.TO_REVEAL
+
+        else:  # self.event is None
+            self.interaction_object = None
+
+    def reactions_handler(self):
+        """Program reactions in the main loop."""
+
+        # Performing actual reactions.
+
+        # self.face_button_status = FACE.READY
 
         if self.action is not None:
 
-            if self.graphics.face_button.collidepoint(self.mouse_position):
-                face_status = FACE.PRESSED
+            if self.interaction_object == self.graphics.face_button:
+                if self.action == ACTION.TO_PRESS:
+                    self.face_button_status = FACE.PRESSED
                 if self.action == ACTION.TO_OPEN:
+                    self.face_button_status = FACE.PRESSED
                     self.logic.new_game()
+                    self.face_button_status = FACE.READY
                     print('new game')
 
-            if self.graphics.minefield.collidepoint(self.mouse_position):
-                print(f'cell: {self.graphics.convert_coords(self.mouse_position)}')
-                self.logic.perform_action(
-                    self.action,
-                    self.graphics.convert_coords(self.mouse_position)
-                )
-
-        self.graphics.draw_bombs_score(self.logic.get_bombs_score())
-        self.graphics.draw_time_score(0)
-        self.graphics.draw_face_button(face_status)
-        self.graphics.draw_minefield(self.logic.matrix_to_draw())
+            if self.interaction_object == self.graphics.minefield:
+                if self.action == ACTION.TO_HOVER:
+                    pass
+                    # TODO
+                if self.action == ACTION.TO_PRESS:
+                    pass
+                    # TODO
+                if self.action == ACTION.TO_OPEN \
+                        or self.action == ACTION.TO_LABEL \
+                        or self.action == ACTION.TO_REVEAL:
+                    print(f'Action to the cell: {self.graphics.convert_coords(self.mouse_position)}')
+                    self.logic.perform_action(
+                        self.action,
+                        self.graphics.convert_coords(self.mouse_position)
+                    )
 
     def graphics_handler(self):
         """Redrawing the screen."""
+        self.graphics.draw_bombs_score(self.logic.get_bombs_score())
+        self.graphics.draw_time_score(0)
+        self.graphics.draw_face_button(self.face_button_status)
+        self.graphics.draw_minefield(self.logic.matrix_to_draw())
+
         self.graphics.show()

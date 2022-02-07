@@ -341,9 +341,6 @@ class Logic:
             self.action_to_label()
         elif action == ACTION.TO_REVEAL:
             self.action_to_reveal()
-        else:  # action == ACTION.PRESSED
-            pass
-            # TODO
 
     # --- Checking game state methods -----------------------------------------
 
