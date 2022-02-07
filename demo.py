@@ -28,10 +28,13 @@ class Demo:
 
         # Setup process
         self.is_running = True  # running main program flag
+
         self.is_mousemotion = False  # flag of the mouse pointer movement event
         self.mouse_position = None  # current mouse position
+
         self.event = None  # current occurred event from mouse or keys
         self.action = None  # current action performed based on event
+
         self.face_button_status = FACE.READY
         self.interaction_object = None
 
@@ -57,9 +60,12 @@ class Demo:
     def loop_handler(self):
         """Resetting flags."""
         self.graphics.clock_tick()
+
         self.is_mousemotion = False
+
         self.event = None
         self.action = None
+
         return self.is_running
 
     def events_handler(self):
@@ -173,8 +179,9 @@ class Demo:
                     pass
                     # TODO
                 if self.action == ACTION.TO_PRESS:
-                    pass
-                    # TODO
+                    self.logic.find_pressed_cells(
+                        self.graphics.convert_coords(self.mouse_position)
+                    )
                 if self.action == ACTION.TO_OPEN \
                         or self.action == ACTION.TO_LABEL \
                         or self.action == ACTION.TO_REVEAL:
@@ -186,9 +193,10 @@ class Demo:
 
     def graphics_handler(self):
         """Redrawing the screen."""
+        self.graphics.draw_face_button(self.face_button_status)
+        self.graphics.draw_minefield(self.logic.get_matrix())
+        self.graphics.draw_pressed_cells(self.logic.get_pressed_cells())
         self.graphics.draw_bombs_score(self.logic.get_bombs_score())
         self.graphics.draw_time_score(0)
-        self.graphics.draw_face_button(self.face_button_status)
-        self.graphics.draw_minefield(self.logic.matrix_to_draw())
 
         self.graphics.show()

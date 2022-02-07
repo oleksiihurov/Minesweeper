@@ -14,6 +14,7 @@ Presentation, graphics & UI, provided by pygame external module.
 # System imports
 from os import environ, path
 import json
+from typing import Union
 
 # External imports
 from numpy import ndarray
@@ -202,8 +203,7 @@ class Graphics:
     @staticmethod
     def convert_coords(mouse_coords: tuple[int, int]) -> tuple[int, int]:
         """
-        Converting mouse coords (x, y)
-        to minefield cell position (row, col).
+        Converting mouse coords (x, y) - to minefield cell position (row, col).
         Presumably mouse cursor is inside minefield rect.
         """
 
@@ -211,6 +211,17 @@ class Graphics:
         col = (x - GUI.FIELD_X_TOP_LEFT) // GUI.CELL_SIZE
         row = (y - GUI.FIELD_Y_TOP_LEFT) // GUI.CELL_SIZE
         return row, col
+
+    @staticmethod
+    def convert_position(position: tuple[int, int]) -> tuple[int, int]:
+        """
+        Converting minefield cell position (row, col) - to pixel coords (x, y).
+        """
+
+        row, col = position
+        x = GUI.FIELD_X_TOP_LEFT + col * GUI.CELL_SIZE
+        y = GUI.FIELD_Y_TOP_LEFT + row * GUI.CELL_SIZE
+        return x, y
 
     # --- Defining methods ----------------------------------------------------
 
@@ -264,10 +275,19 @@ class Graphics:
             for col in range(GAME.COLS):
                 sprite = self.sprites['cell_' + CODE_TO_CELL[matrix[row, col]]]
                 rect = sprite.get_rect()
-                rect.topleft = (
-                    GUI.FIELD_X_TOP_LEFT + col * GUI.CELL_SIZE,
-                    GUI.FIELD_Y_TOP_LEFT + row * GUI.CELL_SIZE
-                )
+                rect.topleft = (self.convert_position((row, col)))
+                self.screen.blit(sprite, rect)
+
+    def draw_pressed_cells(self, cells: Union[None, list[tuple[int, int]]]):
+        """
+        Reflecting pressed cell/cells on the minefield.
+        """
+
+        if cells is not None:
+            for cell in cells:
+                sprite = self.sprites['cell_pressed']
+                rect = sprite.get_rect()
+                rect.topleft = (self.convert_position(cell))
                 self.screen.blit(sprite, rect)
 
     def draw_bombs_score(self, bombs_score: int):

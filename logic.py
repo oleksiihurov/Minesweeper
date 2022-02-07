@@ -10,6 +10,8 @@
 Logic, primary purpose and calculations.
 """
 
+# System imports
+from typing import Union
 
 # External imports
 import numpy as np
@@ -57,7 +59,8 @@ class Logic:
         self.is_detonated = False
 
         # click position in format: (row, column)
-        self.click_position: tuple[int, int] = (0, 0)
+        self.click_position: Union[None, tuple[int, int]] = None
+        self.cells_to_press: Union[None, list[tuple[int, int]]] = None
 
         self.new_game()
 
@@ -80,6 +83,9 @@ class Logic:
 
         self.is_started = False
         self.is_detonated = False
+
+        self.click_position = None
+        self.cells_to_press = None
 
     def generate_bombs(self):
         """
@@ -155,6 +161,24 @@ class Logic:
 
         return neighbour_positions
 
+    def find_pressed_cells(self, position: tuple[int, int]):
+        """
+        Compiling list of cells positions to be reflected as pressed.
+        In case of pressing nearby cell - compiling list of several cells.
+        """
+
+        if self.opened[position]:
+            self.cells_to_press = []
+            for neighbour in self.find_neighbours(position):
+                if not self.opened[neighbour]:
+                    if not self.flagged[neighbour]:
+                        self.cells_to_press.append(neighbour)
+        else:
+            if self.flagged[position]:
+                self.cells_to_press = []
+            else:
+                self.cells_to_press = [position]
+
     def count_nearby_flags(self, position: tuple[int, int]) -> int:
         """
         Return number of set flags on neighbour cells.
@@ -214,7 +238,7 @@ class Logic:
                 self.opened[empty_cell] = True
             self.open_neighbours(empty_cell, False)
 
-    # --- Click methods -------------------------------------------------------
+    # --- Action methods ------------------------------------------------------
 
     def _before_first_action_to_open(self) -> bool:
         """
@@ -302,6 +326,8 @@ class Logic:
                 else:
                     # Game over
                     self.is_detonated = True
+        else:
+            self.action_to_reveal()
 
     def action_to_label(self):
         """
@@ -321,10 +347,9 @@ class Logic:
             self.flagged[self.click_position] = \
                 not self.flagged[self.click_position]
         else:
-            if self.nearby[self.click_position]:
-                if self.count_nearby_flags(self.click_position) == \
-                        self.nearby[self.click_position]:
-                    self.open_neighbours(self.click_position)
+            if self.count_nearby_flags(self.click_position) == \
+                    self.nearby[self.click_position]:
+                self.open_neighbours(self.click_position)
 
     def perform_action(self, action: ACTION, click_position):
         """
@@ -332,6 +357,7 @@ class Logic:
         """
 
         self.click_position = click_position
+        self.cells_to_press = None
 
         if action == ACTION.TO_OPEN:
             if not self.is_started:
@@ -343,6 +369,9 @@ class Logic:
             self.action_to_reveal()
 
     # --- Checking game state methods -----------------------------------------
+
+    def get_pressed_cells(self):
+        return self.cells_to_press
 
     def get_bombs_score(self) -> int:
         """
@@ -431,9 +460,9 @@ class Logic:
         lines += '╚═' + '══' * self.cols + '╝'
         print(lines)
 
-    def matrix_to_draw(self) -> np.ndarray:
+    def get_matrix(self) -> np.ndarray:
         """
-        Exporting minefield matrix with the definitions from CELL enum.
+        Exporting minefield matrix with the definitions from CODE_TO_CELL.
         (suitable for drawing current state using separate graphics module)
         """
 
