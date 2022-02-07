@@ -48,7 +48,11 @@ class Graphics:
         # Preparing sprites
         self.sprites: dict[str, pg.Surface] = dict()
         self.load_sprites()
+
+        # Preparing and drawing frame
+        self.frame = pg.Surface((GUI.SCREEN_WIDTH, GUI.SCREEN_HEIGHT))
         self.build_frame()
+        self.draw_frame()
 
         # Defining clickable objects
         self.face_button = self.define_face_button_rect()
@@ -83,122 +87,115 @@ class Graphics:
                 )
             self.sprites[name] = sprite
 
+    def put_sprite_using_topleft(self, surface: pg.Surface, name: str, y: int):
+        """
+        Drawing sprite by its name on coordinates (x, y) of the surface,
+        using topleft as an anchor for the rect.
+        """
+
+        sprite = self.sprites[name]
+        rect = sprite.get_rect()
+        rect.topleft = (0, y)
+        surface.blit(sprite, rect)
+
+    def put_line_of_sprites(self, surface: pg.Surface, name: str, y: int):
+        """
+        Drawing line of sprites according to the number of minefield's columns
+        by name on coordinates (x, y) of the surface.
+        """
+
+        sprite = self.sprites[name]
+        rect = sprite.get_rect()
+        for col in range(GAME.COLS):
+            rect.topleft = (GUI.BORDER + col * GUI.CELL_SIZE, y)
+            surface.blit(sprite, rect)
+
+    def put_sprite_using_topright(self, surface: pg.Surface, name: str, y: int):
+        """
+        Drawing sprite by its name on coordinates (x, y) of the surface,
+        using topright as an anchor for the rect.
+        """
+
+        sprite = self.sprites[name]
+        rect = sprite.get_rect()
+        rect.topright = (GUI.SCREEN_WIDTH, y)
+        surface.blit(sprite, rect)
+
     def build_frame(self):
         """
-        Building full frame surface according to the minefield size,
-        and drawing it on the screen.
+        Building full frame surface according to the minefield size.
         """
 
-        frame = pg.Surface((GUI.SCREEN_WIDTH, GUI.SCREEN_HEIGHT))
-
         # frame line #1
-        sprite = self.sprites['frame_panel_top_left_corner']
-        rect = sprite.get_rect()
-        rect.topleft = (0, 0)
-        frame.blit(sprite, rect)
-
-        sprite = self.sprites['frame_panel_top_edge']
-        rect = sprite.get_rect()
-        for col in range(GAME.COLS):
-            rect.topleft = (GUI.BORDER + col * GUI.CELL_SIZE, 0)
-            frame.blit(sprite, rect)
-
-        sprite = self.sprites['frame_panel_top_right_corner']
-        rect = sprite.get_rect()
-        rect.topright = (GUI.SCREEN_WIDTH, 0)
-        frame.blit(sprite, rect)
+        self.put_sprite_using_topleft(
+            self.frame, 'frame_panel_top_left_corner',
+            0
+        )
+        self.put_line_of_sprites(
+            self.frame, 'frame_panel_top_edge',
+            0
+        )
+        self.put_sprite_using_topright(
+            self.frame, 'frame_panel_top_right_corner',
+            0
+        )
 
         # frame line #2
-        sprite = self.sprites['frame_panel_left_edge']
-        rect = sprite.get_rect()
-        rect.topleft = (0, GUI.BORDER)
-        frame.blit(sprite, rect)
-
-        sprite = self.sprites['frame_panel_interior']
-        rect = sprite.get_rect()
-        for col in range(GAME.COLS):
-            rect.topleft = (GUI.BORDER + col * GUI.CELL_SIZE, GUI.BORDER)
-            frame.blit(sprite, rect)
-
-        sprite = self.sprites['frame_panel_right_edge']
-        rect = sprite.get_rect()
-        rect.topright = (GUI.SCREEN_WIDTH, GUI.BORDER)
-        frame.blit(sprite, rect)
+        self.put_sprite_using_topleft(
+            self.frame, 'frame_panel_left_edge',
+            GUI.BORDER
+        )
+        self.put_line_of_sprites(
+            self.frame, 'frame_panel_interior',
+            GUI.BORDER
+        )
+        self.put_sprite_using_topright(
+            self.frame, 'frame_panel_right_edge',
+            GUI.BORDER
+        )
 
         # frame line #3
-        sprite = self.sprites['frame_field_top_left_corner']
-        rect = sprite.get_rect()
-        rect.topleft = (0, GUI.BORDER + GUI.PANEL_HEIGHT)
-        frame.blit(sprite, rect)
-
-        sprite = self.sprites['frame_field_top_edge']
-        rect = sprite.get_rect()
-        for col in range(GAME.COLS):
-            rect.topleft = (
-                GUI.BORDER + col * GUI.CELL_SIZE,
-                GUI.BORDER + GUI.PANEL_HEIGHT
-            )
-            frame.blit(sprite, rect)
-
-        sprite = self.sprites['frame_field_top_right_corner']
-        rect = sprite.get_rect()
-        rect.topright = (GUI.SCREEN_WIDTH, GUI.BORDER + GUI.PANEL_HEIGHT)
-        frame.blit(sprite, rect)
+        self.put_sprite_using_topleft(
+            self.frame, 'frame_field_top_left_corner',
+            GUI.BORDER + GUI.PANEL_HEIGHT
+        )
+        self.put_line_of_sprites(
+            self.frame, 'frame_field_top_edge',
+            GUI.BORDER + GUI.PANEL_HEIGHT
+        )
+        self.put_sprite_using_topright(
+            self.frame, 'frame_field_top_right_corner',
+            GUI.BORDER + GUI.PANEL_HEIGHT
+        )
 
         # frame line #4
         for row in range(GAME.ROWS):
-            sprite = self.sprites['frame_field_left_edge']
-            rect = sprite.get_rect()
-            rect.topleft = (
-                0,
+            self.put_sprite_using_topleft(
+                self.frame, 'frame_field_left_edge',
                 2 * GUI.BORDER + GUI.PANEL_HEIGHT + row * GUI.CELL_SIZE
             )
-            frame.blit(sprite, rect)
-
-            sprite = self.sprites['frame_field_interior']
-            rect = sprite.get_rect()
-            for col in range(GAME.COLS):
-                rect.topleft = (
-                    GUI.BORDER + col * GUI.CELL_SIZE,
-                    2 * GUI.BORDER + GUI.PANEL_HEIGHT + row * GUI.CELL_SIZE
-                )
-                frame.blit(sprite, rect)
-
-            sprite = self.sprites['frame_field_right_edge']
-            rect = sprite.get_rect()
-            rect.topright = (
-                GUI.SCREEN_WIDTH,
+            self.put_line_of_sprites(
+                self.frame, 'frame_field_interior',
                 2 * GUI.BORDER + GUI.PANEL_HEIGHT + row * GUI.CELL_SIZE
             )
-            frame.blit(sprite, rect)
+            self.put_sprite_using_topright(
+                self.frame, 'frame_field_right_edge',
+                2 * GUI.BORDER + GUI.PANEL_HEIGHT + row * GUI.CELL_SIZE
+            )
 
         # frame line #5
-        sprite = self.sprites['frame_field_bottom_left_corner']
-        rect = sprite.get_rect()
-        rect.topleft = (
-            0,
+        self.put_sprite_using_topleft(
+            self.frame, 'frame_field_bottom_left_corner',
             2 * GUI.BORDER + GUI.PANEL_HEIGHT + GAME.ROWS * GUI.CELL_SIZE
         )
-        frame.blit(sprite, rect)
-
-        sprite = self.sprites['frame_field_bottom_edge']
-        rect = sprite.get_rect()
-        for col in range(GAME.COLS):
-            rect.topleft = (
-                GUI.BORDER + col * GUI.CELL_SIZE,
-                2 * GUI.BORDER + GUI.PANEL_HEIGHT + GAME.ROWS * GUI.CELL_SIZE
-            )
-            frame.blit(sprite, rect)
-
-        sprite = self.sprites['frame_field_bottom_right_corner']
-        rect = sprite.get_rect()
-        rect.topright = (
-            GUI.SCREEN_WIDTH,
+        self.put_line_of_sprites(
+            self.frame, 'frame_field_bottom_edge',
             2 * GUI.BORDER + GUI.PANEL_HEIGHT + GAME.ROWS * GUI.CELL_SIZE
         )
-        frame.blit(sprite, rect)
-
-        self.screen.blit(frame, frame.get_rect())
+        self.put_sprite_using_topright(
+            self.frame, 'frame_field_bottom_right_corner',
+            2 * GUI.BORDER + GUI.PANEL_HEIGHT + GAME.ROWS * GUI.CELL_SIZE
+        )
 
     @staticmethod
     def convert_coords(mouse_coords: tuple[int, int]) -> tuple[int, int]:
@@ -252,6 +249,13 @@ class Graphics:
         )
 
     # --- Drawing methods -----------------------------------------------------
+
+    def draw_frame(self):
+        """
+        Reflecting frame on the screen for the indication and minefield.
+        """
+
+        self.screen.blit(self.frame, self.frame.get_rect())
 
     def draw_face_button(self, face: FACE):
         """
