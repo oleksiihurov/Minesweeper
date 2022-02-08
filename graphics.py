@@ -14,7 +14,7 @@ Presentation, graphics & UI, provided by pygame external module.
 # System imports
 from os import environ, path
 import json
-from typing import Union
+from typing import Optional
 
 # External imports
 from numpy import ndarray
@@ -290,7 +290,7 @@ class Graphics:
                     *self.convert_position((row, col))
                 )
 
-    def draw_pressed_cells(self, cells: Union[None, list[tuple[int, int]]]):
+    def draw_pressed_cells(self, cells: Optional[list[tuple[int, int]]]):
         """
         Reflecting pressed cell/cells on the minefield.
         """

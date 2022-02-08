@@ -30,8 +30,8 @@
 
     "face_button_ready": [179, 13, 26, 26],
     "face_button_active": [205, 13, 26, 26],
-    "face_button_lose": [231, 13, 26, 26],
-    "face_button_win": [257, 13, 26, 26],
+    "face_button_lost": [231, 13, 26, 26],
+    "face_button_won": [257, 13, 26, 26],
     "face_button_pressed": [283, 13, 26, 26],
 
     "cell_empty": [36, 52, 16, 16],

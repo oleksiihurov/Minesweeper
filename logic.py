@@ -11,13 +11,13 @@ Logic, primary purpose and calculations.
 """
 
 # System imports
-from typing import Union
+from typing import Optional
 
 # External imports
 import numpy as np
 
 # Project imports
-from config import START, ACTION, CELL_TO_CODE
+from config import START, ACTION, STATE, CELL_TO_CODE
 
 
 # --- Logic class -------------------------------------------------------------
@@ -54,14 +54,12 @@ class Logic:
             dtype = np.uint8
         )
 
-        # flags
-        self.is_started = False
-        self.is_detonated = False
-
         # click position in format: (row, column)
-        self.click_position: Union[None, tuple[int, int]] = None
-        self.cells_to_press: Union[None, list[tuple[int, int]]] = None
+        self.click_position: Optional[tuple[int, int]] = None
+        self.cells_to_press: Optional[list[tuple[int, int]]] = None
 
+        # creating new game
+        self.game_state = STATE.NEW
         self.new_game()
 
     # --- Matrix initialization methods ---------------------------------------
@@ -81,9 +79,7 @@ class Logic:
         Resetting state of the game to the initial.
         """
 
-        self.is_started = False
-        self.is_detonated = False
-
+        self.game_state = STATE.NEW
         self.click_position = None
         self.cells_to_press = None
 
@@ -204,7 +200,7 @@ class Logic:
             for neighbour in self.find_neighbours(position):
                 if self.flagged[neighbour] ^ self.mined[neighbour]:
                     # Game over
-                    self.is_detonated = True
+                    self.game_state = STATE.LOST
                     return
 
         # Step 2: than the actual opening of the neighbours
@@ -325,7 +321,8 @@ class Logic:
                         self.expand(self.click_position)
                 else:
                     # Game over
-                    self.is_detonated = True
+                    self.game_state = STATE.LOST
+
         else:
             self.action_to_reveal()
 
@@ -360,8 +357,9 @@ class Logic:
         self.cells_to_press = None
 
         if action == ACTION.TO_OPEN:
-            if not self.is_started:
-                self.is_started = self._before_first_action_to_open()
+            if self.game_state == STATE.NEW:
+                if self._before_first_action_to_open():
+                    self.game_state = STATE.GO
             self.action_to_open()
         elif action == ACTION.TO_LABEL:
             self.action_to_label()
@@ -379,7 +377,7 @@ class Logic:
         """
         return int(self.bombs - np.sum(self.flagged))
 
-    def is_game_won(self) -> bool:
+    def check_game_won(self) -> bool:
         """
         Checking if the current state of the game is won.
         """
@@ -390,6 +388,7 @@ class Logic:
         # Otherwise player can't leave opened number of cells
         # by number of bombs without detonating.
         if self.rows * self.cols - np.sum(self.opened) == self.bombs:
+            self.game_state = STATE.WON
             return True
         else:
             return False
@@ -405,11 +404,11 @@ class Logic:
                 if self.mined[row, col]:
                     self.flagged[row, col] = True
 
-    def is_game_lost(self) -> bool:
+    def check_game_lost(self) -> bool:
         """
         Checking if the current state of the game is lost.
         """
-        return True if self.is_detonated else False
+        return True if self.game_state == STATE.LOST else False
 
     # --- Export methods ------------------------------------------------------
 
@@ -474,7 +473,7 @@ class Logic:
                     matrix[row, col] = self.nearby[row, col]
                 else:
                     matrix[row, col] = CELL_TO_CODE['closed']
-                    if not self.is_detonated:
+                    if self.game_state != STATE.LOST:
                         if self.flagged[row, col]:
                             matrix[row, col] = CELL_TO_CODE['flagged']
                     else:

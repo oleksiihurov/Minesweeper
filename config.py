@@ -50,11 +50,18 @@ class ACTION(Enum):
     TO_REVEAL = auto()  # to label it or reveal its adjacent cells
 
 
+class STATE(Enum):
+    NEW = auto()  # game just created but not started
+    GO = auto()  # game is started already and continues
+    WON = auto()  # game is won and finished
+    LOST = auto()  # # game is lost and finished
+
+
 class FACE(Enum):
     READY = auto()  # regular smiley face button
     ACTIVE = auto()  # face while opening cell
-    LOSE = auto()  # sad face on lost game
-    WIN = auto()  # boss face on won game
+    WON = auto()  # boss face on won game
+    LOST = auto()  # sad face on lost game
     PRESSED = auto()  # pressed state of the button
 
 
