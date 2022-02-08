@@ -118,7 +118,6 @@ class Demo:
         # That is done to give users ability to change their minds,
         # once performing the mouse click acton.
 
-        # order is matter of the inner if's
         if self.event is not None:
 
             if self.graphics.face_button.collidepoint(self.mouse_position):
@@ -127,7 +126,7 @@ class Demo:
 
                 if self.event == EVENT.LEFT_MOUSE_BUTTON_DOWN:
                     self.face_button_status = FACE.PRESSED
-                    self.action = ACTION.TO_PRESS
+                    self.action = ACTION.TO_OPEN_PRESS
                 if self.event == EVENT.LEFT_MOUSE_BUTTON_UP:
                     self.face_button_status = FACE.PRESSED
                     self.action = ACTION.TO_OPEN
@@ -146,9 +145,9 @@ class Demo:
                 self.action = ACTION.TO_HOVER
 
                 if self.event == EVENT.LEFT_MOUSE_BUTTON_DOWN:
-                    self.action = ACTION.TO_PRESS
+                    self.action = ACTION.TO_OPEN_PRESS
                 if self.event == EVENT.RIGHT_MOUSE_BUTTON_DOWN:
-                    pass
+                    self.action = ACTION.TO_LABEL_PRESS
 
                 if self.event == EVENT.LEFT_MOUSE_BUTTON_UP:
                     self.action = ACTION.TO_OPEN
@@ -170,7 +169,7 @@ class Demo:
         if self.action is not None:
 
             if self.interaction_object == self.graphics.face_button:
-                if self.action == ACTION.TO_PRESS:
+                if self.action == ACTION.TO_OPEN_PRESS:
                     self.face_button_status = FACE.PRESSED
                 if self.action == ACTION.TO_OPEN:
                     self.face_button_status = FACE.PRESSED
@@ -184,7 +183,7 @@ class Demo:
                     if self.action == ACTION.TO_HOVER:
                         pass
                         # TODO
-                    if self.action == ACTION.TO_PRESS:
+                    if self.action == ACTION.TO_OPEN_PRESS:
                         print(f'Action {self.action.name} to the cell at position: '
                               f'{self.graphics.convert_coords(self.mouse_position)}')
                         self.face_button_status = FACE.ACTIVE

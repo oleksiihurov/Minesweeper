@@ -17,7 +17,7 @@ from typing import Optional
 import numpy as np
 
 # Project imports
-from config import START, ACTION, STATE, CELL_TO_CODE
+from config import START_RULE, ACTION, STATE, CELL_TO_CODE
 
 
 # --- Logic class -------------------------------------------------------------
@@ -29,7 +29,8 @@ class Logic:
         # retrieving provided game parameters
         self.cols = game.COLS
         self.rows = game.ROWS
-        self.rule = game.RULE
+        self.start_rule = game.START_RULE
+        self.marks_present = game.MARKS_PRESENT
         self.bombs = game.BOMBS
 
         # boolean matrix layer of the present bombs on the minefield
@@ -47,7 +48,11 @@ class Logic:
             shape = (self.rows, self.cols),
             dtype = np.bool
         )
-        # TODO add marks
+        # boolean matrix layer of the marked/non-marked cells by player
+        self.marked = np.empty(
+            shape = (self.rows, self.cols),
+            dtype = np.bool
+        )
         # matrix layer which represents number of bombs nearby for each cell
         self.nearby = np.empty(
             shape = (self.rows, self.cols),
@@ -72,6 +77,7 @@ class Logic:
         self.mined = np.zeros_like(self.mined)
         self.opened = np.zeros_like(self.opened)
         self.flagged = np.zeros_like(self.flagged)
+        self.marked = np.zeros_like(self.marked)
         self.nearby = np.zeros_like(self.nearby)
 
     def reset_state(self):
@@ -175,6 +181,17 @@ class Logic:
             else:
                 self.cells_to_press = [position]
 
+    def count_nearby_closes(self, position: tuple[int, int]) -> int:
+        """
+        Return number of closed neighbour cells.
+        """
+
+        count = 0
+        for neighbour in self.find_neighbours(position):
+            if not self.opened[neighbour]:
+                count += 1
+        return count
+
     def count_nearby_flags(self, position: tuple[int, int]) -> int:
         """
         Return number of set flags on neighbour cells.
@@ -186,7 +203,7 @@ class Logic:
                 count += 1
         return count
 
-    def open_neighbours(
+    def to_open_neighbours(
             self,
             position: tuple[int, int],
             do_detonation_check = True
@@ -206,7 +223,17 @@ class Logic:
         # Step 2: than the actual opening of the neighbours
         for neighbour in self.find_neighbours(position):
             if not self.flagged[neighbour]:
-                self.opened[neighbour] = True
+                self.to_open_cell(neighbour)
+
+    def to_flag_neighbours(self, position: tuple[int, int]):
+        """
+        Flagging the neighbour cells in case if there are
+        precise number of closed neighbours.
+        """
+
+        for neighbour in self.find_neighbours(position):
+            if not self.opened[neighbour]:
+                self.to_flag_cell(neighbour)
 
     def expand(self, position: tuple[int, int]):
         """
@@ -231,8 +258,32 @@ class Logic:
         # Step 2: opening all the neighbour cells to the list from Step 1
         for empty_cell in expanding_cells:
             if not self.flagged[empty_cell]:
-                self.opened[empty_cell] = True
-            self.open_neighbours(empty_cell, False)
+                self.to_open_cell(empty_cell)
+            self.to_open_neighbours(empty_cell, False)
+
+    def to_open_cell(self, position: tuple[int, int]):
+        """Opening cell."""
+        self.opened[position] = True
+        if self.marked[position]:
+            self.marked[position] = False
+
+    def to_flag_cell(self, position: tuple[int, int]):
+        """Flagging cell (even if there is mark)."""
+        self.flagged[position] = True
+        self.marked[position] = False
+
+    def to_label_cell(self, position: tuple[int, int]):
+        """Labeling cell by mark or flag."""
+        if self.marks_present:
+            if not self.flagged[position] and not self.marked[position]:
+                self.flagged[position] = True
+            elif self.flagged[position]:
+                self.flagged[position] = False
+                self.marked[position] = True
+            elif self.marked[position]:
+                self.marked[position] = False
+        else:
+            self.flagged[position] = not self.flagged[position]
 
     # --- Action methods ------------------------------------------------------
 
@@ -246,10 +297,10 @@ class Logic:
         if self.flagged[self.click_position]:
             return False
 
-        if self.rule == START.AS_IS:
+        if self.start_rule == START_RULE.AS_IS:
             pass
 
-        elif self.rule == START.NO_BOMB:
+        elif self.start_rule == START_RULE.NO_BOMB:
             if self.mined[self.click_position]:
                 while self.mined[(
                         new_bomb_position := (
@@ -262,7 +313,7 @@ class Logic:
                 self.mined[self.click_position] = False
                 self.calculate_nearby()
 
-        else:  # self.rule == START.EMPTY_CELL
+        else:  # self.start_rule == START_RULE.EMPTY_CELL
             click_row, click_col = self.click_position
 
             # Step 1: validation of possibility to follow the rule
@@ -316,13 +367,13 @@ class Logic:
         if not self.opened[self.click_position]:
             if not self.flagged[self.click_position]:
                 if not self.mined[self.click_position]:
-                    self.opened[self.click_position] = True
+                    self.to_open_cell(self.click_position)
                     if self.nearby[self.click_position] == 0:
                         self.expand(self.click_position)
                 else:
                     # Game over
                     self.game_state = STATE.LOST
-
+                    return
         else:
             self.action_to_reveal()
 
@@ -332,8 +383,11 @@ class Logic:
         """
 
         if not self.opened[self.click_position]:
-            self.flagged[self.click_position] = \
-                not self.flagged[self.click_position]
+            self.to_label_cell(self.click_position)
+        else:
+            if self.count_nearby_closes(self.click_position) == \
+                    self.nearby[self.click_position]:
+                self.to_flag_neighbours(self.click_position)
 
     def action_to_reveal(self):
         """
@@ -341,12 +395,11 @@ class Logic:
         """
 
         if not self.opened[self.click_position]:
-            self.flagged[self.click_position] = \
-                not self.flagged[self.click_position]
+            self.to_label_cell(self.click_position)
         else:
             if self.count_nearby_flags(self.click_position) == \
                     self.nearby[self.click_position]:
-                self.open_neighbours(self.click_position)
+                self.to_open_neighbours(self.click_position)
 
     def perform_action(self, action: ACTION, click_position):
         """
@@ -474,6 +527,8 @@ class Logic:
                 else:
                     matrix[row, col] = CELL_TO_CODE['closed']
                     if self.game_state != STATE.LOST:
+                        if self.marked[row, col]:
+                            matrix[row, col] = CELL_TO_CODE['marked']
                         if self.flagged[row, col]:
                             matrix[row, col] = CELL_TO_CODE['flagged']
                     else:
@@ -483,6 +538,8 @@ class Logic:
                             else:
                                 matrix[row, col] = CELL_TO_CODE['mined']
                         else:
+                            if self.marked[row, col]:
+                                matrix[row, col] = CELL_TO_CODE['marked']
                             if self.flagged[row, col]:
                                 matrix[row, col] = CELL_TO_CODE['not_mined']
 

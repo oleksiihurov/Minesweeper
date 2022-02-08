@@ -21,7 +21,7 @@ from numpy.random import randint, seed
 
 # --- Types -------------------------------------------------------------------
 
-class START(Enum):
+class START_RULE(Enum):
     AS_IS = auto()  # As minefield generated - no changes
     NO_BOMB = auto()  # Once bomb appear under 1st click - it moved elsewhere
     EMPTY_CELL = auto()  # Under 1st click - entire 3*3 area cleared from bombs
@@ -43,8 +43,9 @@ class EVENT(Enum):
 
 
 class ACTION(Enum):
-    TO_HOVER = auto()
-    TO_PRESS = auto()
+    TO_HOVER = auto()  # focus the current cell under mouse cursor
+    TO_OPEN_PRESS = auto()  # highlight cells on pressing for opening
+    TO_LABEL_PRESS = auto()  # highlight cells on pressing for labeling
     TO_OPEN = auto()  # to open cell
     TO_LABEL = auto()  # to flag or mark cell
     TO_REVEAL = auto()  # to label it or reveal its adjacent cells
@@ -98,7 +99,8 @@ class GAME:
     ROWS = 16  # 2 <= ROWS <= 32
     COLS = 30  # 2 <= COLS <= 32
 
-    RULE = START.AS_IS
+    START_RULE = START_RULE.AS_IS
+    MARKS_PRESENT = True
 
     # BOMBS_PERCENTAGE = 0.150  # 0.001 <= PERCENTAGE <= 0.999
     # BOMBS = max(round(BOMBS_PERCENTAGE * (ROWS * COLS)), 1)
