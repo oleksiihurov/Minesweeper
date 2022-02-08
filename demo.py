@@ -169,9 +169,12 @@ class Demo:
         if self.action is not None:
 
             if self.interaction_object == self.graphics.face_button:
-                if self.action == ACTION.TO_OPEN_PRESS:
+                if self.action == ACTION.TO_HOVER:
+                    pass
+                    # TODO
+                elif self.action == ACTION.TO_OPEN_PRESS:
                     self.face_button_status = FACE.PRESSED
-                if self.action == ACTION.TO_OPEN:
+                elif self.action == ACTION.TO_OPEN:
                     self.face_button_status = FACE.PRESSED
                     self.logic.new_game()
                     self.face_button_status = FACE.READY
@@ -183,14 +186,19 @@ class Demo:
                     if self.action == ACTION.TO_HOVER:
                         pass
                         # TODO
-                    if self.action == ACTION.TO_OPEN_PRESS:
+                    elif self.action == ACTION.TO_OPEN_PRESS:
                         print(f'Action {self.action.name} to the cell at position: '
                               f'{self.graphics.convert_coords(self.mouse_position)}')
                         self.face_button_status = FACE.ACTIVE
                         self.logic.find_pressed_cells(
                             self.graphics.convert_coords(self.mouse_position)
                         )
-                    if self.action == ACTION.TO_OPEN \
+                    elif self.action == ACTION.TO_LABEL_PRESS:
+                        print(f'Action {self.action.name} to the cell at position: '
+                              f'{self.graphics.convert_coords(self.mouse_position)}')
+                        pass
+                        # TODO
+                    elif self.action == ACTION.TO_OPEN \
                             or self.action == ACTION.TO_LABEL \
                             or self.action == ACTION.TO_REVEAL:
                         print(f'Action {self.action.name} to the cell at position: '
@@ -202,7 +210,6 @@ class Demo:
                         if self.logic.check_game_lost():
                             self.face_button_status = FACE.LOST
                         if self.logic.check_game_won():
-                            self.logic.game_won_postprocedure()
                             self.face_button_status = FACE.WON
 
     def graphics_handler(self):
@@ -212,5 +219,6 @@ class Demo:
         self.graphics.draw_pressed_cells(self.logic.get_pressed_cells())
         self.graphics.draw_bombs_score(self.logic.get_bombs_score())
         self.graphics.draw_time_score(0)
+        # TODO time_score
 
         self.graphics.show()

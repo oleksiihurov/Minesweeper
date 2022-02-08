@@ -70,9 +70,7 @@ class Logic:
     # --- Matrix initialization methods ---------------------------------------
 
     def clear_matrices(self):
-        """
-        Erasing all the matrix layers.
-        """
+        """Erasing all the matrix layers."""
 
         self.mined = np.zeros_like(self.mined)
         self.opened = np.zeros_like(self.opened)
@@ -81,18 +79,14 @@ class Logic:
         self.nearby = np.zeros_like(self.nearby)
 
     def reset_state(self):
-        """
-        Resetting state of the game to the initial.
-        """
+        """Resetting state of the game to the initial."""
 
         self.game_state = STATE.NEW
         self.click_position = None
         self.cells_to_press = None
 
     def generate_bombs(self):
-        """
-        Filling up minefield by predefine number of bombs.
-        """
+        """Filling up minefield by predefine number of bombs."""
 
         tmp = np.zeros(self.rows * self.cols, self.mined.dtype)
         tmp[:self.bombs] = True
@@ -116,9 +110,7 @@ class Logic:
                     np.sum(m[row:row+3, col:col+3]) - m[row+1, col+1]
 
     def new_game(self):
-        """
-        New game with the same predefined conditions.
-        """
+        """New game with the same predefined conditions."""
 
         self.clear_matrices()
         self.reset_state()
@@ -182,9 +174,7 @@ class Logic:
                 self.cells_to_press = [position]
 
     def count_nearby_closes(self, position: tuple[int, int]) -> int:
-        """
-        Return number of closed neighbour cells.
-        """
+        """Return number of closed neighbour cells."""
 
         count = 0
         for neighbour in self.find_neighbours(position):
@@ -193,9 +183,7 @@ class Logic:
         return count
 
     def count_nearby_flags(self, position: tuple[int, int]) -> int:
-        """
-        Return number of set flags on neighbour cells.
-        """
+        """Return number of set flags on neighbour cells."""
 
         count = 0
         for neighbour in self.find_neighbours(position):
@@ -290,8 +278,8 @@ class Logic:
     def _before_first_action_to_open(self) -> bool:
         """
         Rearranging bombs under position of the first open click
-        according to current game rule.
-        Return True in case of successful performing.
+        according to current start rule.
+        Return True in case of successful performing - False otherwise.
         """
 
         if self.flagged[self.click_position]:
@@ -391,7 +379,8 @@ class Logic:
 
     def action_to_reveal(self):
         """
-        Combined action to label cell or to reveal its adjacent cells.
+        Combined action to label cell or to reveal its adjacent cells
+        under click position.
         """
 
         if not self.opened[self.click_position]:
@@ -421,19 +410,12 @@ class Logic:
 
     # --- Checking game state methods -----------------------------------------
 
-    def get_pressed_cells(self):
-        return self.cells_to_press
-
-    def get_bombs_score(self) -> int:
-        """
-        Counting number of left bombs to flag on the minefield.
-        """
-        return int(self.bombs - np.sum(self.flagged))
+    def check_game_lost(self) -> bool:
+        """Checking if the current state of the game is lost."""
+        return True if self.game_state == STATE.LOST else False
 
     def check_game_won(self) -> bool:
-        """
-        Checking if the current state of the game is won.
-        """
+        """Checking if the current state of the game is won."""
 
         # Counting closed cells - that's the only necessary criteria.
         # Set flags do not matter actually, they are optional
@@ -442,26 +424,28 @@ class Logic:
         # by number of bombs without detonating.
         if self.rows * self.cols - np.sum(self.opened) == self.bombs:
             self.game_state = STATE.WON
+
+            # game win postprocedure:
+            # marking all the remaining closed cells by flags
+            for row in range(self.rows):
+                for col in range(self.cols):
+                    if self.mined[row, col]:
+                        self.flagged[row, col] = True
+
             return True
         else:
             return False
 
-    def game_won_postprocedure(self):
+    def get_pressed_cells(self) -> Optional[list[tuple[int, int]]]:
         """
-        Presumably: self.is_game_won() == True
-        Marking all the remaining closed cells by flags.
+        Return pressed cell/cells at the moment
+        after calling method self.find_pressed_cells()
         """
+        return self.cells_to_press
 
-        for row in range(self.rows):
-            for col in range(self.cols):
-                if self.mined[row, col]:
-                    self.flagged[row, col] = True
-
-    def check_game_lost(self) -> bool:
-        """
-        Checking if the current state of the game is lost.
-        """
-        return True if self.game_state == STATE.LOST else False
+    def get_bombs_score(self) -> int:
+        """Counting number of left bombs to flag on the minefield."""
+        return int(self.bombs - np.sum(self.flagged))
 
     # --- Export methods ------------------------------------------------------
 
