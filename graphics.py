@@ -87,7 +87,10 @@ class Graphics:
                 )
             self.sprites[name] = sprite
 
-    def put_sprite_using_topleft(self, surface: pg.Surface, name: str, y: int):
+    def put_sprite_using_topleft(
+            self, surface: pg.Surface,
+            name: str, x: int, y: int
+    ):
         """
         Drawing sprite by its name on coordinates (x, y) of the surface,
         using topleft as an anchor for the rect.
@@ -95,7 +98,7 @@ class Graphics:
 
         sprite = self.sprites[name]
         rect = sprite.get_rect()
-        rect.topleft = (0, y)
+        rect.topleft = (x, y)
         surface.blit(sprite, rect)
 
     def put_line_of_sprites(self, surface: pg.Surface, name: str, y: int):
@@ -110,7 +113,10 @@ class Graphics:
             rect.topleft = (GUI.BORDER + col * GUI.CELL_SIZE, y)
             surface.blit(sprite, rect)
 
-    def put_sprite_using_topright(self, surface: pg.Surface, name: str, y: int):
+    def put_sprite_using_topright(
+            self, surface: pg.Surface,
+            name: str, x: int, y: int
+    ):
         """
         Drawing sprite by its name on coordinates (x, y) of the surface,
         using topright as an anchor for the rect.
@@ -118,7 +124,7 @@ class Graphics:
 
         sprite = self.sprites[name]
         rect = sprite.get_rect()
-        rect.topright = (GUI.SCREEN_WIDTH, y)
+        rect.topright = (x, y)
         surface.blit(sprite, rect)
 
     def build_frame(self):
@@ -129,7 +135,7 @@ class Graphics:
         # frame line #1
         self.put_sprite_using_topleft(
             self.frame, 'frame_panel_top_left_corner',
-            0
+            0, 0
         )
         self.put_line_of_sprites(
             self.frame, 'frame_panel_top_edge',
@@ -137,13 +143,13 @@ class Graphics:
         )
         self.put_sprite_using_topright(
             self.frame, 'frame_panel_top_right_corner',
-            0
+            GUI.SCREEN_WIDTH, 0
         )
 
         # frame line #2
         self.put_sprite_using_topleft(
             self.frame, 'frame_panel_left_edge',
-            GUI.BORDER
+            0, GUI.BORDER
         )
         self.put_line_of_sprites(
             self.frame, 'frame_panel_interior',
@@ -151,13 +157,13 @@ class Graphics:
         )
         self.put_sprite_using_topright(
             self.frame, 'frame_panel_right_edge',
-            GUI.BORDER
+            GUI.SCREEN_WIDTH, GUI.BORDER
         )
 
         # frame line #3
         self.put_sprite_using_topleft(
             self.frame, 'frame_field_top_left_corner',
-            GUI.BORDER + GUI.PANEL_HEIGHT
+            0, GUI.BORDER + GUI.PANEL_HEIGHT
         )
         self.put_line_of_sprites(
             self.frame, 'frame_field_top_edge',
@@ -165,14 +171,14 @@ class Graphics:
         )
         self.put_sprite_using_topright(
             self.frame, 'frame_field_top_right_corner',
-            GUI.BORDER + GUI.PANEL_HEIGHT
+            GUI.SCREEN_WIDTH, GUI.BORDER + GUI.PANEL_HEIGHT
         )
 
         # frame line #4
         for row in range(GAME.ROWS):
             self.put_sprite_using_topleft(
                 self.frame, 'frame_field_left_edge',
-                2 * GUI.BORDER + GUI.PANEL_HEIGHT + row * GUI.CELL_SIZE
+                0, 2 * GUI.BORDER + GUI.PANEL_HEIGHT + row * GUI.CELL_SIZE
             )
             self.put_line_of_sprites(
                 self.frame, 'frame_field_interior',
@@ -180,13 +186,14 @@ class Graphics:
             )
             self.put_sprite_using_topright(
                 self.frame, 'frame_field_right_edge',
+                GUI.SCREEN_WIDTH,
                 2 * GUI.BORDER + GUI.PANEL_HEIGHT + row * GUI.CELL_SIZE
             )
 
         # frame line #5
         self.put_sprite_using_topleft(
             self.frame, 'frame_field_bottom_left_corner',
-            2 * GUI.BORDER + GUI.PANEL_HEIGHT + GAME.ROWS * GUI.CELL_SIZE
+            0, 2 * GUI.BORDER + GUI.PANEL_HEIGHT + GAME.ROWS * GUI.CELL_SIZE
         )
         self.put_line_of_sprites(
             self.frame, 'frame_field_bottom_edge',
@@ -194,6 +201,7 @@ class Graphics:
         )
         self.put_sprite_using_topright(
             self.frame, 'frame_field_bottom_right_corner',
+            GUI.SCREEN_WIDTH,
             2 * GUI.BORDER + GUI.PANEL_HEIGHT + GAME.ROWS * GUI.CELL_SIZE
         )
 
@@ -277,10 +285,10 @@ class Graphics:
 
         for row in range(GAME.ROWS):
             for col in range(GAME.COLS):
-                sprite = self.sprites['cell_' + CODE_TO_CELL[matrix[row, col]]]
-                rect = sprite.get_rect()
-                rect.topleft = (self.convert_position((row, col)))
-                self.screen.blit(sprite, rect)
+                self.put_sprite_using_topleft(
+                    self.screen, 'cell_' + CODE_TO_CELL[matrix[row, col]],
+                    *self.convert_position((row, col))
+                )
 
     def draw_pressed_cells(self, cells: Union[None, list[tuple[int, int]]]):
         """
@@ -289,10 +297,10 @@ class Graphics:
 
         if cells is not None:
             for cell in cells:
-                sprite = self.sprites['cell_pressed']
-                rect = sprite.get_rect()
-                rect.topleft = (self.convert_position(cell))
-                self.screen.blit(sprite, rect)
+                self.put_sprite_using_topleft(
+                    self.screen, 'cell_pressed',
+                    *self.convert_position(cell)
+                )
 
     def draw_bombs_score(self, bombs_score: int):
         """
@@ -307,13 +315,11 @@ class Graphics:
 
         # drawing corresponding digits
         for index, symbol in enumerate(string_score):
-            sprite = self.sprites['digit_' + symbol]
-            rect = sprite.get_rect()
-            rect.topleft = (
+            self.put_sprite_using_topleft(
+                self.screen, 'digit_' + symbol,
                 GUI.PANEL_X_TOP_LEFT + (5 + index * 13) * GUI.SCALE,
                 GUI.PANEL_Y_TOP_LEFT + 4 * GUI.SCALE
             )
-            self.screen.blit(sprite, rect)
 
     def draw_time_score(self, time_score: int):
         """
@@ -328,14 +334,12 @@ class Graphics:
 
         # drawing corresponding digits
         for index, symbol in enumerate(string_score):
-            sprite = self.sprites['digit_' + symbol]
-            rect = sprite.get_rect()
-            rect.topright = (
+            self.put_sprite_using_topright(
+                self.screen, 'digit_' + symbol,
                 GUI.PANEL_X_TOP_LEFT + GUI.PANEL_WIDTH
                 - (5 + (2 - index) * 13) * GUI.SCALE,
                 GUI.PANEL_Y_TOP_LEFT + 4 * GUI.SCALE
             )
-            self.screen.blit(sprite, rect)
 
     # --- Operational methods -------------------------------------------------
 
