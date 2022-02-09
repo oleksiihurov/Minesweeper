@@ -21,7 +21,7 @@ from numpy import ndarray
 import pygame as pg
 
 # Project imports
-from config import FACE, CODE_TO_CELL, GAME, GUI
+from config import ACTION, FACE, CODE_TO_CELL, GAME, GUI
 
 
 # --- Graphics ----------------------------------------------------------------
@@ -290,17 +290,28 @@ class Graphics:
                     *self.convert_position((row, col))
                 )
 
-    def draw_pressed_cells(self, cells: Optional[list[tuple[int, int]]]):
+    def draw_pressed_cells(
+            self,
+            cells: Optional[list[tuple[int, int]]],
+            action: ACTION
+    ):
         """
         Reflecting pressed cell/cells on the minefield.
         """
 
         if cells is not None:
-            for cell in cells:
-                self.put_sprite_using_topleft(
-                    self.screen, 'cell_pressed',
-                    *self.convert_position(cell)
-                )
+            if action == ACTION.TO_OPEN_PRESS:
+                for cell in cells:
+                    self.put_sprite_using_topleft(
+                        self.screen, 'cell_pressed',
+                        *self.convert_position(cell)
+                    )
+            elif action == ACTION.TO_LABEL_PRESS:
+                for cell in cells:
+                    self.put_sprite_using_topleft(
+                        self.screen, 'cell_marked_pressed',
+                        *self.convert_position(cell)
+                    )
 
     def draw_bombs_score(self, bombs_score: int):
         """

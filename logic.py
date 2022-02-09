@@ -10,6 +10,7 @@
 Logic, primary purpose and calculations.
 """
 
+
 # System imports
 from typing import Optional
 from time import time
@@ -21,7 +22,7 @@ import numpy as np
 from config import START_RULE, ACTION, GAME_STATE, CELL_TO_CODE
 
 
-# --- Logic class -------------------------------------------------------------
+# --- Logic -------------------------------------------------------------------
 
 class Logic:
     """All the Minesweeper game logic is here."""
@@ -162,7 +163,11 @@ class Logic:
 
         return neighbour_positions
 
-    def find_pressed_cells(self, position: tuple[int, int]):
+    def find_pressed_cells(
+            self,
+            position: tuple[int, int],
+            action: ACTION
+    ):
         """
         Compiling list of cells positions to be reflected as pressed.
         In case of pressing nearby cell - compiling list of several cells.
@@ -175,10 +180,13 @@ class Logic:
                     if not self.flagged[neighbour]:
                         self.cells_to_press.append(neighbour)
         else:
-            if self.flagged[position]:
+            if action == ACTION.TO_OPEN_PRESS:
+                if self.flagged[position]:
+                    self.cells_to_press = []
+                else:
+                    self.cells_to_press = [position]
+            elif action == ACTION.TO_LABEL_PRESS:
                 self.cells_to_press = []
-            else:
-                self.cells_to_press = [position]
 
     def count_nearby_closes(self, position: tuple[int, int]) -> int:
         """Return number of closed neighbour cells."""
@@ -501,13 +509,6 @@ class Logic:
         lines += '╚═' + '══' * self.cols + '╝'
         print(lines)
 
-    def get_pressed_cells(self) -> Optional[list[tuple[int, int]]]:
-        """
-        Return pressed cell/cells at the moment
-        after calling method self.find_pressed_cells()
-        """
-        return self.cells_to_press
-
     def get_bombs_score(self) -> int:
         """Counting number of left bombs to flag on the minefield."""
         return int(self.bombs - np.sum(self.flagged))
@@ -521,6 +522,13 @@ class Logic:
             if self.game_state == GAME_STATE.GO:
                 self.time_score = time() - self.time_started
             return int(self.time_score)
+
+    def get_pressed_cells(self) -> Optional[list[tuple[int, int]]]:
+        """
+        Return pressed cell/cells at the moment
+        after calling method self.find_pressed_cells()
+        """
+        return self.cells_to_press
 
     def get_matrix(self) -> np.ndarray:
         """

@@ -99,8 +99,8 @@ class GAME:
     ROWS = 16  # 2 <= ROWS <= 32
     COLS = 30  # 2 <= COLS <= 32
 
-    START_RULE = START_RULE.AS_IS
-    MARKS_PRESENT = False
+    START_RULE = START_RULE.EMPTY_CELL
+    MARKS_PRESENT = True
 
     # BOMBS_PERCENTAGE = 0.150  # 0.001 <= PERCENTAGE <= 0.999
     # BOMBS = max(round(BOMBS_PERCENTAGE * (ROWS * COLS)), 1)
