@@ -12,12 +12,13 @@ Logic, primary purpose and calculations.
 
 # System imports
 from typing import Optional
+from time import time
 
 # External imports
 import numpy as np
 
 # Project imports
-from config import START_RULE, ACTION, STATE, CELL_TO_CODE
+from config import START_RULE, ACTION, GAME_STATE, CELL_TO_CODE
 
 
 # --- Logic class -------------------------------------------------------------
@@ -63,11 +64,15 @@ class Logic:
         self.click_position: Optional[tuple[int, int]] = None
         self.cells_to_press: Optional[list[tuple[int, int]]] = None
 
+        # game timer
+        self.time_started = None
+        self.time_score = None
+
         # creating new game
-        self.game_state = STATE.NEW
+        self.game_state = GAME_STATE.NEW
         self.new_game()
 
-    # --- Matrix initialization methods ---------------------------------------
+    # --- Initialization methods ----------------------------------------------
 
     def clear_matrices(self):
         """Erasing all the matrix layers."""
@@ -81,9 +86,11 @@ class Logic:
     def reset_state(self):
         """Resetting state of the game to the initial."""
 
-        self.game_state = STATE.NEW
         self.click_position = None
         self.cells_to_press = None
+        self.time_started = None
+        self.time_score = None
+        self.game_state = GAME_STATE.NEW
 
     def generate_bombs(self):
         """Filling up minefield by predefine number of bombs."""
@@ -194,7 +201,8 @@ class Logic:
     def to_open_neighbours(
             self,
             position: tuple[int, int],
-            do_detonation_check = True
+            do_detonation_check = True,
+            do_further_expansion = True
     ):
         """
         Opening the neighbour cells in case if set flags are correct.
@@ -205,13 +213,16 @@ class Logic:
             for neighbour in self.find_neighbours(position):
                 if self.flagged[neighbour] ^ self.mined[neighbour]:
                     # Game over
-                    self.game_state = STATE.LOST
+                    self.game_state = GAME_STATE.LOST
                     return
 
         # Step 2: than the actual opening of the neighbours
         for neighbour in self.find_neighbours(position):
             if not self.flagged[neighbour]:
                 self.to_open_cell(neighbour)
+                if do_further_expansion:
+                    if self.nearby[neighbour] == 0:
+                        self.expand(neighbour)
 
     def to_flag_neighbours(self, position: tuple[int, int]):
         """
@@ -247,13 +258,12 @@ class Logic:
         for empty_cell in expanding_cells:
             if not self.flagged[empty_cell]:
                 self.to_open_cell(empty_cell)
-            self.to_open_neighbours(empty_cell, False)
+            self.to_open_neighbours(empty_cell, False, False)
 
     def to_open_cell(self, position: tuple[int, int]):
         """Opening cell."""
         self.opened[position] = True
-        if self.marked[position]:
-            self.marked[position] = False
+        self.marked[position] = False
 
     def to_flag_cell(self, position: tuple[int, int]):
         """Flagging cell (even if there is mark)."""
@@ -360,7 +370,7 @@ class Logic:
                         self.expand(self.click_position)
                 else:
                     # Game over
-                    self.game_state = STATE.LOST
+                    self.game_state = GAME_STATE.LOST
                     return
         else:
             self.action_to_reveal()
@@ -399,9 +409,10 @@ class Logic:
         self.cells_to_press = None
 
         if action == ACTION.TO_OPEN:
-            if self.game_state == STATE.NEW:
+            if self.game_state == GAME_STATE.NEW:
                 if self._before_first_action_to_open():
-                    self.game_state = STATE.GO
+                    self.game_state = GAME_STATE.GO
+                    self.start_game_time()
             self.action_to_open()
         elif action == ACTION.TO_LABEL:
             self.action_to_label()
@@ -410,9 +421,14 @@ class Logic:
 
     # --- Checking game state methods -----------------------------------------
 
+    def start_game_time(self):
+        """Starting game timer."""
+        self.time_started = time()
+        self.time_score = 0
+
     def check_game_lost(self) -> bool:
         """Checking if the current state of the game is lost."""
-        return True if self.game_state == STATE.LOST else False
+        return True if self.game_state == GAME_STATE.LOST else False
 
     def check_game_won(self) -> bool:
         """Checking if the current state of the game is won."""
@@ -423,7 +439,7 @@ class Logic:
         # Otherwise player can't leave opened number of cells
         # by number of bombs without detonating.
         if self.rows * self.cols - np.sum(self.opened) == self.bombs:
-            self.game_state = STATE.WON
+            self.game_state = GAME_STATE.WON
 
             # game win postprocedure:
             # marking all the remaining closed cells by flags
@@ -435,17 +451,6 @@ class Logic:
             return True
         else:
             return False
-
-    def get_pressed_cells(self) -> Optional[list[tuple[int, int]]]:
-        """
-        Return pressed cell/cells at the moment
-        after calling method self.find_pressed_cells()
-        """
-        return self.cells_to_press
-
-    def get_bombs_score(self) -> int:
-        """Counting number of left bombs to flag on the minefield."""
-        return int(self.bombs - np.sum(self.flagged))
 
     # --- Export methods ------------------------------------------------------
 
@@ -496,6 +501,27 @@ class Logic:
         lines += '╚═' + '══' * self.cols + '╝'
         print(lines)
 
+    def get_pressed_cells(self) -> Optional[list[tuple[int, int]]]:
+        """
+        Return pressed cell/cells at the moment
+        after calling method self.find_pressed_cells()
+        """
+        return self.cells_to_press
+
+    def get_bombs_score(self) -> int:
+        """Counting number of left bombs to flag on the minefield."""
+        return int(self.bombs - np.sum(self.flagged))
+
+    def get_time_score(self) -> int:
+        """Proving time score of the current game."""
+
+        if self.time_score is None:
+            return 0
+        else:
+            if self.game_state == GAME_STATE.GO:
+                self.time_score = time() - self.time_started
+            return int(self.time_score)
+
     def get_matrix(self) -> np.ndarray:
         """
         Exporting minefield matrix with the definitions from CODE_TO_CELL.
@@ -510,7 +536,7 @@ class Logic:
                     matrix[row, col] = self.nearby[row, col]
                 else:
                     matrix[row, col] = CELL_TO_CODE['closed']
-                    if self.game_state != STATE.LOST:
+                    if self.game_state != GAME_STATE.LOST:
                         if self.marked[row, col]:
                             matrix[row, col] = CELL_TO_CODE['marked']
                         if self.flagged[row, col]:

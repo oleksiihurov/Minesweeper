@@ -51,7 +51,7 @@ class ACTION(Enum):
     TO_REVEAL = auto()  # to label it or reveal its adjacent cells
 
 
-class STATE(Enum):
+class GAME_STATE(Enum):
     NEW = auto()  # game just created but not started
     GO = auto()  # game is started already and continues
     WON = auto()  # game is won and finished
@@ -100,7 +100,7 @@ class GAME:
     COLS = 30  # 2 <= COLS <= 32
 
     START_RULE = START_RULE.AS_IS
-    MARKS_PRESENT = True
+    MARKS_PRESENT = False
 
     # BOMBS_PERCENTAGE = 0.150  # 0.001 <= PERCENTAGE <= 0.999
     # BOMBS = max(round(BOMBS_PERCENTAGE * (ROWS * COLS)), 1)

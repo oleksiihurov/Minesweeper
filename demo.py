@@ -15,7 +15,7 @@ Main program. Entry point.
 import pygame as pg
 
 # Project imports
-from config import EVENT, ACTION, STATE, FACE, GAME, GUI
+from config import EVENT, ACTION, GAME_STATE, FACE, GAME, GUI
 from logic import Logic
 from graphics import Graphics
 
@@ -48,6 +48,7 @@ class Demo:
 
         self.logic.perform_action(ACTION.TO_OPEN, (6, 8))
 
+        self.logic.perform_action(ACTION.TO_LABEL, (6, 26))
         self.logic.perform_action(ACTION.TO_LABEL, (6, 26))
         self.logic.perform_action(ACTION.TO_LABEL, (8, 23))
         self.logic.perform_action(ACTION.TO_OPEN, (9, 24))
@@ -132,12 +133,12 @@ class Demo:
                     self.action = ACTION.TO_OPEN
 
             else:
-                if self.logic.game_state == STATE.NEW \
-                        or self.logic.game_state == STATE.GO:
+                if self.logic.game_state == GAME_STATE.NEW \
+                        or self.logic.game_state == GAME_STATE.GO:
                     self.face_button_status = FACE.READY
-                elif self.logic.game_state == STATE.WON:
+                elif self.logic.game_state == GAME_STATE.WON:
                     self.face_button_status = FACE.WON
-                elif self.logic.game_state == STATE.LOST:
+                elif self.logic.game_state == GAME_STATE.LOST:
                     self.face_button_status = FACE.LOST
 
             if self.graphics.minefield.collidepoint(self.mouse_position):
@@ -180,8 +181,8 @@ class Demo:
                     self.face_button_status = FACE.READY
                     print('New Game')
 
-            if self.logic.game_state == STATE.NEW \
-                    or self.logic.game_state == STATE.GO:
+            if self.logic.game_state == GAME_STATE.NEW \
+                    or self.logic.game_state == GAME_STATE.GO:
                 if self.interaction_object == self.graphics.minefield:
                     if self.action == ACTION.TO_HOVER:
                         pass
@@ -218,7 +219,6 @@ class Demo:
         self.graphics.draw_minefield(self.logic.get_matrix())
         self.graphics.draw_pressed_cells(self.logic.get_pressed_cells())
         self.graphics.draw_bombs_score(self.logic.get_bombs_score())
-        self.graphics.draw_time_score(0)
-        # TODO time_score
+        self.graphics.draw_time_score(self.logic.get_time_score())
 
         self.graphics.show()
