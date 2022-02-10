@@ -81,7 +81,7 @@ class Demo:
             # events from main window
             if event.type == pg.QUIT:
                 self.is_running = False
-                break
+                return
 
             # events from mouse
             if event.type == pg.MOUSEMOTION:
@@ -89,10 +89,10 @@ class Demo:
                 self.mouse_coords = pg.mouse.get_pos()
 
             left_button, middle_button, right_button = pg.mouse.get_pressed()
-            if left_button:
+            if left_button:  # Left button click press
                 self.event = EVENT.LEFT_MOUSE_BUTTON_DOWN
                 print(f'Event {self.event.name} at coords: {self.mouse_coords}')
-            if right_button:
+            if right_button:  # Right button click press
                 self.event = EVENT.RIGHT_MOUSE_BUTTON_DOWN
                 print(f'Event {self.event.name} at coords: {self.mouse_coords}')
 
@@ -108,6 +108,27 @@ class Demo:
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_ESCAPE:  # Esc key
                     self.is_running = False
+                    return
+
+                # if event.key == pg.K_F2:  # 'F2' key
+                #     self.event = None
+                #     self.new_game()
+                #     return
+
+                if event.key == pg.K_RIGHT:  # 'right arrow' key
+                    self.event = EVENT.RIGHT_ARROW_KEY_DOWN
+                if event.key == pg.K_LEFT:  # 'left arrow' key
+                    self.event = EVENT.LEFT_ARROW_KEY_DOWN
+                if event.key == pg.K_UP:  # 'up arrow' key
+                    self.event = EVENT.UP_ARROW_KEY_DOWN
+                if event.key == pg.K_DOWN:  # 'down arrow' key
+                    self.event = EVENT.DOWN_ARROW_KEY_DOWN
+
+                if event.key == pg.K_z:  # 'z' key
+                    self.event = EVENT.LEFT_MOUSE_BUTTON_UP
+                if event.key == pg.K_x:  # 'x' key
+                    self.event = EVENT.RIGHT_MOUSE_BUTTON_UP
+
                 if event.key == pg.K_SPACE:  # Space bar key press
                     self.event = EVENT.SPACE_BAR_DOWN
                     print(f'Event {self.event.name} at coords: {self.mouse_coords}')
@@ -144,6 +165,12 @@ class Demo:
                 self.interaction_object = self.graphics.minefield
                 self.action = ACTION.TO_HOVER
 
+                if self.event == EVENT.RIGHT_ARROW_KEY_DOWN \
+                        or self.event == EVENT.LEFT_ARROW_KEY_DOWN \
+                        or self.event == EVENT.UP_ARROW_KEY_DOWN \
+                        or self.event == EVENT.DOWN_ARROW_KEY_DOWN:
+                    self.move_mouse_cursor()
+
                 if self.event == EVENT.LEFT_MOUSE_BUTTON_DOWN:
                     self.action = ACTION.TO_OPEN_PRESS
                 if self.event == EVENT.RIGHT_MOUSE_BUTTON_DOWN:
@@ -175,9 +202,7 @@ class Demo:
                 elif self.action == ACTION.TO_OPEN_PRESS:
                     self.face_button_status = FACE.PRESSED
                 elif self.action == ACTION.TO_OPEN:
-                    self.logic.new_game()
-                    self.face_button_status = FACE.READY
-                    print('New Game')
+                    self.new_game()
 
             if self.logic.game_state == GAME_STATE.NEW \
                     or self.logic.game_state == GAME_STATE.GO:
@@ -187,28 +212,11 @@ class Demo:
                         # TODO
                     elif self.action == ACTION.TO_OPEN_PRESS \
                             or self.action == ACTION.TO_LABEL_PRESS:
-                        print(f'Action {self.action.name} to the cell at position: '
-                              f'{self.graphics.convert_coords(self.mouse_coords)}')
-                        self.face_button_status = FACE.ACTIVE
-                        self.press_action = self.action
-                        self.logic.find_pressed_cells(
-                            self.graphics.convert_coords(self.mouse_coords),
-                            self.press_action
-                        )
+                        self.reaction_on_press()
                     elif self.action == ACTION.TO_OPEN \
                             or self.action == ACTION.TO_LABEL \
                             or self.action == ACTION.TO_REVEAL:
-                        print(f'Action {self.action.name} to the cell at position: '
-                              f'{self.graphics.convert_coords(self.mouse_coords)}')
-                        self.press_action = None
-                        self.logic.perform_action(
-                            self.action,
-                            self.graphics.convert_coords(self.mouse_coords)
-                        )
-                        if self.logic.check_game_lost():
-                            self.face_button_status = FACE.LOST
-                        if self.logic.check_game_won():
-                            self.face_button_status = FACE.WON
+                        self.reaction_on_release()
 
     def graphics_handler(self):
         """Redrawing the screen."""
@@ -222,3 +230,60 @@ class Demo:
         )
 
         self.graphics.show()
+
+    # --- Gaming methods ------------------------------------------------------
+
+    def move_mouse_cursor(self):
+        """
+        Moving mouse cursor according
+        to the direction of pressed arrow keys.
+        """
+
+        if self.event == EVENT.RIGHT_ARROW_KEY_DOWN:
+            direction = 'right'
+        elif self.event == EVENT.LEFT_ARROW_KEY_DOWN:
+            direction = 'left'
+        elif self.event == EVENT.UP_ARROW_KEY_DOWN:
+            direction = 'up'
+        elif self.event == EVENT.DOWN_ARROW_KEY_DOWN:
+            direction = 'down'
+        else:
+            direction = None
+
+        pg.mouse.set_pos(
+            self.graphics.new_mouse_coords(self.mouse_coords, direction)
+        )
+
+    def new_game(self):
+        """Procedure for the new game."""
+
+        print('New Game')
+        self.logic.new_game()
+        self.face_button_status = FACE.READY
+
+    def reaction_on_press(self):
+        """Performing reaction on press input buttons/keys."""
+
+        print(f'Action {self.action.name} to the cell at position: '
+              f'{self.graphics.convert_coords(self.mouse_coords)}')
+        self.face_button_status = FACE.ACTIVE
+        self.press_action = self.action
+        self.logic.find_pressed_cells(
+            self.graphics.convert_coords(self.mouse_coords),
+            self.press_action
+        )
+
+    def reaction_on_release(self):
+        """Performing reaction on release input buttons/keys."""
+
+        print(f'Action {self.action.name} to the cell at position: '
+              f'{self.graphics.convert_coords(self.mouse_coords)}')
+        self.press_action = None
+        self.logic.perform_action(
+            self.action,
+            self.graphics.convert_coords(self.mouse_coords)
+        )
+        if self.logic.check_game_lost():
+            self.face_button_status = FACE.LOST
+        if self.logic.check_game_won():
+            self.face_button_status = FACE.WON

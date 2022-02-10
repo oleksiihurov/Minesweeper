@@ -243,9 +243,7 @@ class Logic:
                 self.to_flag_cell(neighbour)
 
     def expand(self, position: tuple[int, int]):
-        """
-        Expending area in case opened cell has no bombs nearby.
-        """
+        """Expending area in case opened cell has no bombs nearby."""
 
         # Step 1: forming list of positions of adjacent empty cells
         expanding_cells = {position: False}
@@ -291,7 +289,43 @@ class Logic:
         else:
             self.flagged[position] = not self.flagged[position]
 
-    # --- Action methods ------------------------------------------------------
+    # --- Game Start Rule methods ---------------------------------------------
+
+    def _start_rule_no_bomb(self):
+        """Once bomb appear under first click position - it moved elsewhere."""
+
+        if self.mined[self.click_position]:
+            while self.mined[(
+                    new_bomb_position := (
+                            np.random.randint(self.rows),
+                            np.random.randint(self.cols)
+                    )
+            )]:
+                pass
+            self.mined[new_bomb_position] = True
+            self.mined[self.click_position] = False
+            self.calculate_nearby()
+
+    def _start_rule_empty_cell(self):
+        """Under first click position - entire 3*3 area cleared from bombs."""
+
+        while self.nearby[self.click_position] != 0 \
+                or self.mined[self.click_position]:
+            covering_area = \
+                self.find_neighbours(self.click_position) + \
+                [self.click_position]
+            for cell in covering_area:
+                if self.mined[cell]:
+                    while self.mined[(
+                            new_bomb_position := (
+                                    np.random.randint(self.rows),
+                                    np.random.randint(self.cols)
+                            )
+                    )]:
+                        pass
+                    self.mined[new_bomb_position] = True
+                    self.mined[cell] = False
+                    self.calculate_nearby()
 
     def _before_first_action_to_open(self) -> bool:
         """
@@ -307,63 +341,23 @@ class Logic:
             pass
 
         elif self.start_rule == START_RULE.NO_BOMB:
-            if self.mined[self.click_position]:
-                while self.mined[(
-                        new_bomb_position := (
-                                np.random.randint(self.rows),
-                                np.random.randint(self.cols)
-                        )
-                )]:
-                    pass
-                self.mined[new_bomb_position] = True
-                self.mined[self.click_position] = False
-                self.calculate_nearby()
+            self._start_rule_no_bomb()
 
         else:  # self.start_rule == START_RULE.EMPTY_CELL
-            click_row, click_col = self.click_position
+            number_of_cells_to_cover = \
+                len(self.find_neighbours(self.click_position)) + 1
 
-            # Step 1: validation of possibility to follow the rule
-            covered_cells = 9
-            # first click position is at the corner of the minefield:
-            if self.click_position == (self.rows - 1, self.cols - 1) \
-                    or self.click_position == (0, self.cols - 1) \
-                    or self.click_position == (self.rows - 1, 0) \
-                    or self.click_position == (0, 0):
-                covered_cells = 4
+            if self.bombs < (self.rows * self.cols) - number_of_cells_to_cover:
+                self._start_rule_empty_cell()
             else:
-                # first click position is at the edge of the minefield:
-                if click_row == 0 or click_row == self.rows - 1 \
-                        or click_col == 0 or click_col == self.cols - 1:
-                    covered_cells = 6
-            # TODO consider case for 1x8 minefield
-
-            # validation by exceeding number of bombs
-            # TODO instead of exception - redirect to START.NO_BOMB case
-            if self.bombs + covered_cells >= (self.rows * self.cols):
-                raise ValueError(
-                    "Too many bombs on the minefield "
-                    "to meet the rule of empty cell "
-                    "for the first open click."
-                )
-
-            # Step 2: performing the rule itself
-            while self.nearby[self.click_position] != 0:
-                for i in range(self.nearby[self.click_position]):
-                    while self.mined[(
-                            new_bomb_position := (
-                                    np.random.randint(self.rows),
-                                    np.random.randint(self.cols)
-                            )
-                    )]:
-                        pass
-                    self.mined[new_bomb_position] = True
-                self.mined[
-                    max(click_row - 1, 0):min(click_row + 2, self.rows + 1),
-                    max(click_col - 1, 0):min(click_col + 2, self.cols + 1)
-                ] = False
-                self.calculate_nearby()
+                # Too many bombs on the minefield
+                # to meet the start rule of empty_cell,
+                # so the start rule of no_bomb will be applied instead
+                self._start_rule_no_bomb()
 
         return True
+
+    # --- Action methods ------------------------------------------------------
 
     def action_to_open(self):
         """
@@ -462,6 +456,7 @@ class Logic:
 
     # --- Export methods ------------------------------------------------------
 
+    # TODO remove Debug method
     def print_revealed_minefield(self):
         """
         Debug print to console current state of revealed minefield.
@@ -484,6 +479,7 @@ class Logic:
         lines += '└─' + '──' * self.cols + '┘'
         print(lines)
 
+    # TODO remove Debug method
     def print_covered_minefield(self):
         """
         Debug print to console current state of covered minefield.
@@ -544,6 +540,8 @@ class Logic:
                     matrix[row, col] = self.nearby[row, col]
                 else:
                     matrix[row, col] = CELL_TO_CODE['closed']
+                    # if self.mined[row, col]:  # for debug only
+                    #     matrix[row, col] = CELL_TO_CODE['mined']
                     if self.game_state != GAME_STATE.LOST:
                         if self.marked[row, col]:
                             matrix[row, col] = CELL_TO_CODE['marked']

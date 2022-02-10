@@ -205,6 +205,8 @@ class Graphics:
             2 * GUI.BORDER + GUI.PANEL_HEIGHT + GAME.ROWS * GUI.CELL_SIZE
         )
 
+    # --- Coords / Position methods ----------------------------------------------------
+
     @staticmethod
     def convert_coords(mouse_coords: tuple[int, int]) -> tuple[int, int]:
         """
@@ -227,6 +229,35 @@ class Graphics:
         x = GUI.FIELD_X_TOP_LEFT + col * GUI.CELL_SIZE
         y = GUI.FIELD_Y_TOP_LEFT + row * GUI.CELL_SIZE
         return x, y
+
+    def new_mouse_coords(
+            self,
+            mouse_coords: tuple[int, int],
+            direction: str
+    ) -> tuple[int, int]:
+        """
+        Defining new mouse cursor coords according to the direction
+        over the center of appropriate minefield cell.
+        """
+
+        if direction is not None:
+            row, col = self.convert_coords(mouse_coords)
+
+            if direction == 'right':
+                col = min(col + 1, GAME.COLS - 1)
+            elif direction == 'left':
+                col = max(col - 1, 0)
+            elif direction == 'up':
+                row = max(row - 1, 0)
+            elif direction == 'down':
+                row = min(row + 1, GAME.ROWS - 1)
+
+            x, y = self.convert_position((row, col))
+            x += GUI.CELL_SIZE // 2
+            y += GUI.CELL_SIZE // 2
+            return x, y
+        else:
+            return mouse_coords
 
     # --- Defining methods ----------------------------------------------------
 

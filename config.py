@@ -40,6 +40,10 @@ class EVENT(Enum):
     RIGHT_MOUSE_BUTTON_DOWN = auto()
     RIGHT_MOUSE_BUTTON_UP = auto()
     SPACE_BAR_DOWN = auto()
+    RIGHT_ARROW_KEY_DOWN = auto()
+    LEFT_ARROW_KEY_DOWN = auto()
+    UP_ARROW_KEY_DOWN = auto()
+    DOWN_ARROW_KEY_DOWN = auto()
 
 
 class ACTION(Enum):
@@ -103,8 +107,15 @@ class GAME:
     MARKS_PRESENT = True
 
     # BOMBS_PERCENTAGE = 0.150  # 0.001 <= PERCENTAGE <= 0.999
-    # BOMBS = max(round(BOMBS_PERCENTAGE * (ROWS * COLS)), 1)
-    BOMBS = 99
+    # BOMBS = \
+    #     min(
+    #         max(
+    #             round(BOMBS_PERCENTAGE * (ROWS * COLS)),
+    #             1
+    #         ),
+    #         (ROWS * COLS - 1)
+    #     )
+    BOMBS = 99  # 1 <= BOMBS <= (ROWS * COLS - 1)
 
     # random seed for minefield generation
     # None - pure random. 42 - certain random seed for reproducible results.
@@ -163,7 +174,9 @@ def config_validation():
         raise ValueError("Minefield size is too narrow.")
     if GAME.ROWS > 32 or GAME.COLS > 32:
         raise ValueError("Minefield size is too wide.")
-    if GAME.BOMBS + 1 >= GAME.ROWS * GAME.COLS:
+    if GAME.BOMBS < 1:
+        raise ValueError("Too few bombs set for the minefield.")
+    if GAME.BOMBS > GAME.ROWS * GAME.COLS + 1:
         raise ValueError("Too many bombs set for the minefield.")
 
 
