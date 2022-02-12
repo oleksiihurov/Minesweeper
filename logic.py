@@ -63,6 +63,7 @@ class Logic:
 
         # click position in format: (row, column)
         self.click_position: Optional[tuple[int, int]] = None
+        self.cell_to_hover: Optional[tuple[int, int]] = None
         self.cells_to_press: Optional[list[tuple[int, int]]] = None
 
         # game timer
@@ -88,6 +89,7 @@ class Logic:
         """Resetting state of the game to the initial."""
 
         self.click_position = None
+        self.cell_to_hover = None
         self.cells_to_press = None
         self.time_started = None
         self.time_score = None
@@ -163,7 +165,11 @@ class Logic:
 
         return neighbour_positions
 
-    def find_pressed_cells(
+    def define_hovered_cell(self, position: tuple[int, int]):
+        """Defining cell's position which is covered right now."""
+        self.cell_to_hover = position
+
+    def define_pressed_cells(
             self,
             position: tuple[int, int],
             action: ACTION
@@ -408,6 +414,7 @@ class Logic:
         """
 
         self.click_position = click_position
+        self.cell_to_hover = None
         self.cells_to_press = None
 
         if action == ACTION.TO_OPEN:
@@ -519,13 +526,50 @@ class Logic:
                 self.time_score = time() - self.time_started
             return int(self.time_score)
 
+    def get_hovered_cell(self) -> Optional[tuple[int, int]]:
+        """
+        Return hovered cell at the moment
+        after calling method self.define_hovered_cell()
+        """
+        return self.cell_to_hover
+
     def get_pressed_cells(self) -> Optional[list[tuple[int, int]]]:
         """
         Return pressed cell/cells at the moment
-        after calling method self.find_pressed_cells()
+        after calling method self.define_pressed_cells()
         """
         return self.cells_to_press
 
+    def get_code_of_cell(self, position: tuple[int, int]):
+
+        if self.opened[position]:
+            code_of_cell = self.nearby[position]
+        else:
+            code_of_cell = CELL_TO_CODE['closed']
+            # if self.mined[position]:  # for debug only
+            #     code_of_cell = CELL_TO_CODE['mined']
+            if self.game_state != GAME_STATE.LOST:
+                if self.marked[position]:
+                    code_of_cell = CELL_TO_CODE['marked']
+                if self.flagged[position]:
+                    code_of_cell = CELL_TO_CODE['flagged']
+            else:
+                if self.mined[position]:
+                    if self.flagged[position]:
+                        code_of_cell = CELL_TO_CODE['flagged']
+                    else:
+                        code_of_cell = CELL_TO_CODE['mined']
+                else:
+                    if self.marked[position]:
+                        code_of_cell = CELL_TO_CODE['marked']
+                    if self.flagged[position]:
+                        code_of_cell = CELL_TO_CODE['not_mined']
+
+                if self.click_position == position:
+                    code_of_cell = CELL_TO_CODE['detonated']
+
+        return code_of_cell
+        
     def get_matrix(self) -> np.ndarray:
         """
         Exporting minefield matrix with the definitions from CODE_TO_CELL.
@@ -536,30 +580,6 @@ class Logic:
 
         for row in range(self.rows):
             for col in range(self.cols):
-                if self.opened[row, col]:
-                    matrix[row, col] = self.nearby[row, col]
-                else:
-                    matrix[row, col] = CELL_TO_CODE['closed']
-                    # if self.mined[row, col]:  # for debug only
-                    #     matrix[row, col] = CELL_TO_CODE['mined']
-                    if self.game_state != GAME_STATE.LOST:
-                        if self.marked[row, col]:
-                            matrix[row, col] = CELL_TO_CODE['marked']
-                        if self.flagged[row, col]:
-                            matrix[row, col] = CELL_TO_CODE['flagged']
-                    else:
-                        if self.mined[row, col]:
-                            if self.flagged[row, col]:
-                                matrix[row, col] = CELL_TO_CODE['flagged']
-                            else:
-                                matrix[row, col] = CELL_TO_CODE['mined']
-                        else:
-                            if self.marked[row, col]:
-                                matrix[row, col] = CELL_TO_CODE['marked']
-                            if self.flagged[row, col]:
-                                matrix[row, col] = CELL_TO_CODE['not_mined']
-
-                        if self.click_position == (row, col):
-                            matrix[row, col] = CELL_TO_CODE['detonated']
+                matrix[row, col] = self.get_code_of_cell((row, col))
 
         return matrix

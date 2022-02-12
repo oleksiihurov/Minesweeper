@@ -35,6 +35,7 @@ class Demo:
         self.event = None  # current occurred event from mouse or keys
         self.action = None  # current action performed based on event
 
+        self.hover_action = None
         self.press_action = None
         self.face_button_status = FACE.READY
         self.interaction_object = None
@@ -85,6 +86,7 @@ class Demo:
 
             # events from mouse
             if event.type == pg.MOUSEMOTION:
+                self.event = EVENT.MOUSE_MOTION
                 self.is_mousemotion = True
                 self.mouse_coords = pg.mouse.get_pos()
 
@@ -145,7 +147,8 @@ class Demo:
 
             if self.graphics.face_button.collidepoint(self.mouse_coords):
                 self.interaction_object = self.graphics.face_button
-                self.action = ACTION.TO_HOVER
+                # self.action = ACTION.TO_HOVER
+                # TODO own hover action
 
                 if self.event == EVENT.LEFT_MOUSE_BUTTON_DOWN:
                     self.action = ACTION.TO_OPEN_PRESS
@@ -153,6 +156,7 @@ class Demo:
                     self.action = ACTION.TO_OPEN
 
             else:
+                self.hover_action = False
                 if self.logic.game_state == GAME_STATE.NEW \
                         or self.logic.game_state == GAME_STATE.GO:
                     self.face_button_status = FACE.READY
@@ -184,6 +188,8 @@ class Demo:
                 if self.event == EVENT.SPACE_BAR_DOWN:
                     if self.interaction_object == self.graphics.minefield:
                         self.action = ACTION.TO_REVEAL
+            else:
+                self.hover_action = False
 
         else:  # self.event is None
             self.interaction_object = None
@@ -208,7 +214,7 @@ class Demo:
                     or self.logic.game_state == GAME_STATE.GO:
                 if self.interaction_object == self.graphics.minefield:
                     if self.action == ACTION.TO_HOVER:
-                        pass
+                        self.reaction_on_hover()
                         # TODO
                     elif self.action == ACTION.TO_OPEN_PRESS \
                             or self.action == ACTION.TO_LABEL_PRESS:
@@ -224,10 +230,18 @@ class Demo:
         self.graphics.draw_bombs_score(self.logic.get_bombs_score())
         self.graphics.draw_time_score(self.logic.get_time_score())
         self.graphics.draw_minefield(self.logic.get_matrix())
-        self.graphics.draw_pressed_cells(
-            self.logic.get_pressed_cells(),
-            self.press_action
-        )
+        if self.press_action is not None:
+            self.graphics.draw_pressed_cells(
+                self.logic.get_pressed_cells(),
+                self.press_action
+            )
+        if GUI.DRAW_HOVERS and self.hover_action:
+            self.graphics.draw_hovered_cell(
+                self.logic.get_code_of_cell(
+                    self.graphics.convert_coords(self.mouse_coords)
+                ),
+                self.graphics.convert_coords(self.mouse_coords)
+            )
 
         self.graphics.show()
 
@@ -261,6 +275,14 @@ class Demo:
         self.logic.new_game()
         self.face_button_status = FACE.READY
 
+    def reaction_on_hover(self):
+        print(f'Action {self.action.name} to the cell at position: '
+              f'{self.graphics.convert_coords(self.mouse_coords)}')
+        self.hover_action = True
+        self.logic.define_hovered_cell(
+            self.graphics.convert_coords(self.mouse_coords)
+        )
+
     def reaction_on_press(self):
         """Performing reaction on press input buttons/keys."""
 
@@ -268,7 +290,7 @@ class Demo:
               f'{self.graphics.convert_coords(self.mouse_coords)}')
         self.face_button_status = FACE.ACTIVE
         self.press_action = self.action
-        self.logic.find_pressed_cells(
+        self.logic.define_pressed_cells(
             self.graphics.convert_coords(self.mouse_coords),
             self.press_action
         )

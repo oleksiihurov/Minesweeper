@@ -48,6 +48,8 @@ class Graphics:
         # Preparing sprites
         self.sprites: dict[str, pg.Surface] = dict()
         self.load_sprites()
+        if GUI.DRAW_HOVERS:
+            self.make_hover_sprites()
 
         # Preparing and drawing frame
         self.frame = pg.Surface((GUI.SCREEN_WIDTH, GUI.SCREEN_HEIGHT))
@@ -86,6 +88,39 @@ class Graphics:
                     (w * GUI.SCALE, h * GUI.SCALE)
                 )
             self.sprites[name] = sprite
+
+    def make_hover_sprites(self):
+        """
+        Making additional sprites from existing for clickable UI elements.
+        """
+
+        brighten = 20
+        sprites_to_be_hovered = [
+            'face_button_ready',
+            'face_button_lost',
+            'face_button_won',
+
+            'cell_empty',
+            'cell_nearby_1',
+            'cell_nearby_2',
+            'cell_nearby_3',
+            'cell_nearby_4',
+            'cell_nearby_5',
+            'cell_nearby_6',
+            'cell_nearby_7',
+            'cell_nearby_8',
+            'cell_closed',
+            'cell_flagged',
+            'cell_marked'
+        ]
+        name_suffix = '_hovered'
+
+        for name in sprites_to_be_hovered:
+            self.sprites[name + name_suffix] = self.sprites[name].copy()
+            self.sprites[name + name_suffix].fill(
+                (brighten, brighten, brighten),
+                special_flags = pg.BLEND_RGB_ADD
+            )
 
     def put_sprite_using_topleft(
             self, surface: pg.Surface,
@@ -320,6 +355,21 @@ class Graphics:
                     self.screen, 'cell_' + CODE_TO_CELL[matrix[row, col]],
                     *self.convert_position((row, col))
                 )
+
+    def draw_hovered_cell(
+            self,
+            code_of_cell: int,
+            cell: Optional[tuple[int, int]]
+    ):
+        """
+        Reflecting hovered cell on the minefield.
+        """
+
+        hover_sprite_name = 'cell_' + CODE_TO_CELL[code_of_cell] + '_hovered'
+        self.put_sprite_using_topleft(
+            self.screen, hover_sprite_name,
+            *self.convert_position(cell)
+        )
 
     def draw_pressed_cells(
             self,

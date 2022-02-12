@@ -35,6 +35,7 @@ class PRESET(Enum):
 
 
 class EVENT(Enum):
+    MOUSE_MOTION = auto()
     LEFT_MOUSE_BUTTON_DOWN = auto()
     LEFT_MOUSE_BUTTON_UP = auto()
     RIGHT_MOUSE_BUTTON_DOWN = auto()
@@ -47,7 +48,7 @@ class EVENT(Enum):
 
 
 class ACTION(Enum):
-    TO_HOVER = auto()  # focus the current cell under mouse cursor
+    TO_HOVER = auto()  # focus the clickable element under mouse cursor
     TO_OPEN_PRESS = auto()  # highlight cells on pressing for opening
     TO_LABEL_PRESS = auto()  # highlight cells on pressing for labeling
     TO_OPEN = auto()  # to open cell
@@ -162,6 +163,7 @@ class GUI:
 
     RESOLUTION = (SCREEN_WIDTH, SCREEN_HEIGHT)
 
+    DRAW_HOVERS = True
     FPS = 60
 
 
