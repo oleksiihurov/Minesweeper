@@ -541,6 +541,9 @@ class Logic:
         return self.cells_to_press
 
     def get_code_of_cell(self, position: tuple[int, int]):
+        """
+        Providing code of the cell at position on minefield.
+        """
 
         if self.opened[position]:
             code_of_cell = self.nearby[position]
