@@ -204,7 +204,6 @@ class Demo:
             if self.interaction_object == self.graphics.face_button:
                 if self.action == ACTION.TO_HOVER:
                     pass
-                    # TODO
                 elif self.action == ACTION.TO_OPEN_PRESS:
                     self.face_button_status = FACE.PRESSED
                 elif self.action == ACTION.TO_OPEN:
@@ -215,7 +214,6 @@ class Demo:
                 if self.interaction_object == self.graphics.minefield:
                     if self.action == ACTION.TO_HOVER:
                         self.reaction_on_hover()
-                        # TODO
                     elif self.action == ACTION.TO_OPEN_PRESS \
                             or self.action == ACTION.TO_LABEL_PRESS:
                         self.reaction_on_press()
