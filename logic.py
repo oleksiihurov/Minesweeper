@@ -31,9 +31,9 @@ class Logic:
         # retrieving provided game parameters
         self.cols = game.COLS
         self.rows = game.ROWS
+        self.bombs = game.BOMBS
         self.start_rule = game.START_RULE
         self.marks_present = game.MARKS_PRESENT
-        self.bombs = game.BOMBS
 
         # boolean matrix layer of the present bombs on the minefield
         self.mined = np.empty(

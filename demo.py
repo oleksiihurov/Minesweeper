@@ -15,7 +15,7 @@ Main program. Entry point.
 import pygame as pg
 
 # Project imports
-from config import EVENT, ACTION, GAME_STATE, FACE, GAME, GUI
+from config import EVENT, ACTION, GAME_STATE, FACE_STATE, GAME, GUI
 from logic import Logic
 from graphics import Graphics
 
@@ -37,7 +37,7 @@ class Demo:
 
         self.hover_action = None
         self.press_action = None
-        self.face_button_status = FACE.READY
+        self.face_button_status = FACE_STATE.READY
         self.interaction_object = None
 
         # Setup graphics
@@ -159,11 +159,11 @@ class Demo:
                 self.hover_action = False
                 if self.logic.game_state == GAME_STATE.NEW \
                         or self.logic.game_state == GAME_STATE.GO:
-                    self.face_button_status = FACE.READY
+                    self.face_button_status = FACE_STATE.READY
                 elif self.logic.game_state == GAME_STATE.WON:
-                    self.face_button_status = FACE.WON
+                    self.face_button_status = FACE_STATE.WON
                 elif self.logic.game_state == GAME_STATE.LOST:
-                    self.face_button_status = FACE.LOST
+                    self.face_button_status = FACE_STATE.LOST
 
             if self.graphics.minefield.collidepoint(self.mouse_coords):
                 self.interaction_object = self.graphics.minefield
@@ -205,7 +205,7 @@ class Demo:
                 if self.action == ACTION.TO_HOVER:
                     pass
                 elif self.action == ACTION.TO_OPEN_PRESS:
-                    self.face_button_status = FACE.PRESSED
+                    self.face_button_status = FACE_STATE.PRESSED
                 elif self.action == ACTION.TO_OPEN:
                     self.new_game()
 
@@ -233,7 +233,7 @@ class Demo:
                 self.logic.get_pressed_cells(),
                 self.press_action
             )
-        if GUI.DRAW_HOVERS and self.hover_action:
+        if GUI.INDICATE_HOVER and self.hover_action:
             self.graphics.draw_hovered_cell(
                 self.logic.get_code_of_cell(
                     self.graphics.convert_coords(self.mouse_coords)
@@ -271,7 +271,7 @@ class Demo:
 
         print('New Game')
         self.logic.new_game()
-        self.face_button_status = FACE.READY
+        self.face_button_status = FACE_STATE.READY
 
     def reaction_on_hover(self):
         print(f'Action {self.action.name} to the cell at position: '
@@ -286,7 +286,7 @@ class Demo:
 
         print(f'Action {self.action.name} to the cell at position: '
               f'{self.graphics.convert_coords(self.mouse_coords)}')
-        self.face_button_status = FACE.ACTIVE
+        self.face_button_status = FACE_STATE.ACTIVE
         self.press_action = self.action
         self.logic.define_pressed_cells(
             self.graphics.convert_coords(self.mouse_coords),
@@ -304,6 +304,6 @@ class Demo:
             self.graphics.convert_coords(self.mouse_coords)
         )
         if self.logic.check_game_lost():
-            self.face_button_status = FACE.LOST
+            self.face_button_status = FACE_STATE.LOST
         if self.logic.check_game_won():
-            self.face_button_status = FACE.WON
+            self.face_button_status = FACE_STATE.WON

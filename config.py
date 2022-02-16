@@ -12,8 +12,11 @@ Predefined parameters, constants and types.
 
 
 # System imports
+from typing import Optional
 from enum import Enum, auto
 from dataclasses import dataclass
+from os import path
+from configparser import ConfigParser
 
 # External imports
 from numpy.random import randint, seed
@@ -25,13 +28,6 @@ class START_RULE(Enum):
     AS_IS = auto()  # As minefield generated - no changes
     NO_BOMB = auto()  # Once bomb appear under 1st click - it moved elsewhere
     EMPTY_CELL = auto()  # Under 1st click - entire 3*3 area cleared from bombs
-
-
-class PRESET(Enum):
-    CUSTOM = auto()  # custom size and bombs
-    BEGINNER = auto()  # size: 9x9, bombs: 10
-    INTERMEDIATE = auto()  # size: 16x16, bombs: 40
-    EXPERT = auto()  # size: 30x16, bombs: 99
 
 
 class EVENT(Enum):
@@ -63,7 +59,7 @@ class GAME_STATE(Enum):
     LOST = auto()  # # game is lost and finished
 
 
-class FACE(Enum):
+class FACE_STATE(Enum):
     READY = auto()  # regular smiley face button
     ACTIVE = auto()  # face while opening cell
     WON = auto()  # boss face on won game
@@ -94,37 +90,99 @@ CODE_TO_CELL = [
 CELL_TO_CODE = {k: v for v, k in enumerate(CODE_TO_CELL)}
 
 
+# --- Config Parser -----------------------------------------------------------
+
+config: Optional[ConfigParser] = None
+
+
+def config_parser():
+    """Parsing configuration file for initialization."""
+
+    global config
+    config = ConfigParser()
+    config.read(path.join('assets', 'config.ini'))
+
+
+# --- Config Validation -------------------------------------------------------
+
+def config_validation():
+    """Validating parameters for correctness from configuration file."""
+
+    global config
+
+    if config.getint('Minefield', 'rows') < 1 \
+            or config.getint('Minefield', 'columns') < 1:
+        raise ValueError("Minefield dimensions could not be negative.")
+    if config.getint('Minefield', 'rows') == 1 \
+            and config.getint('Minefield', 'columns') == 1:
+        raise ValueError("Minefield size is too small.")
+    if config.getint('Minefield', 'rows') > 256 \
+            and config.getint('Minefield', 'columns') > 256:
+        raise ValueError("Minefield size is too big.")
+
+    if config.getint('Minefield', 'bombs') < 1:
+        raise ValueError("Too few bombs set for the minefield.")
+    if config.getint('Minefield', 'bombs') > \
+            config.getint('Minefield', 'rows') * \
+            config.getint('Minefield', 'columns') - 1:
+        raise ValueError("Too many bombs set for the minefield.")
+
+    if config.getfloat('Minefield', 'bombs percentage') < 0.1 \
+            or config.getfloat('Minefield', 'bombs percentage') > 99.9:
+        raise ValueError("bombs percentage values have to be "
+                         "floating/integer value in range from 0.1 to 99.9")
+
+
+# --- Executing Config --------------------------------------------------------
+
+config_parser()
+config_validation()
+
+
 # --- Dataclasses -------------------------------------------------------------
 
 @dataclass
 class GAME:
     """Set of constants for Game."""
 
-    # matrix size
-    ROWS = 16  # 1 <= ROWS <= 256
-    COLS = 30  # 1 <= COLS <= 256
+    # minefield
+    if config.has_option('Minefield', 'preset'):
+        ROWS, COLS, BOMBS = {
+            'beginner': [9, 9, 10],
+            'intermediate': [16, 16, 40],
+            'expert': [16, 30, 99]
+        }.get(config.get('Minefield', 'preset'))
 
-    START_RULE = START_RULE.EMPTY_CELL
-    MARKS_PRESENT = False
+    else:
+        ROWS = config.getint('Minefield', 'rows', fallback=8)
+        COLS = config.getint('Minefield', 'columns', fallback=8)
+        BOMBS = config.getint('Minefield', 'bombs', fallback=1)
 
-    # BOMBS_PERCENTAGE = 0.150  # 0.001 <= PERCENTAGE <= 0.999
-    # BOMBS = \
-    #     min(
-    #         max(
-    #             round(BOMBS_PERCENTAGE * (ROWS * COLS)),
-    #             1
-    #         ),
-    #         (ROWS * COLS - 1)
-    #     )
-    BOMBS = 99  # 1 <= BOMBS <= (ROWS * COLS - 1)
+        _bombs_percentage = \
+            config.getfloat('Minefield', 'bombs percentage', fallback=None)
+        if _bombs_percentage is not None:
+            BOMBS = \
+                min(
+                    max(
+                        round(_bombs_percentage / 100 * (ROWS * COLS)), 1
+                    ), (ROWS * COLS - 1)
+                )
 
-    # random seed for minefield generation
-    # None - pure random. 42 - certain random seed for reproducible results.
-    SEED = None
-    if SEED is None:
+    # game parameters
+    START_RULE = {
+        'as is': START_RULE.AS_IS,
+        'no bomb': START_RULE.NO_BOMB,
+        'empty cell': START_RULE.EMPTY_CELL
+    }.get(config.get('Game Parameters', 'starting rule'))
+
+    MARKS_PRESENT = \
+        config.getboolean('Game Parameters', 'marks present', fallback=False)
+
+    _seed = config.get('Game Parameters', 'random seed', fallback=None)
+    if _seed in [None, '']:
         # generating random seed and preserving it
-        SEED = randint(2_147_483_648)
-    seed(SEED)
+        _seed = randint(2_147_483_648)
+    seed(int(_seed))
 
 
 @dataclass
@@ -138,8 +196,13 @@ class GUI:
     import ctypes
     ctypes.windll.user32.SetProcessDPIAware()
 
+    FPS = config.getint('User Interface', 'frames per second', fallback=60)
+
+    INDICATE_HOVER = \
+        config.getboolean('User Interface', 'indicate hovering', fallback=True)
+
     # dimensions
-    SCALE = 2  # 1 == 100%; 2 == 200%; etc. Must be integer and positive
+    SCALE = config.getint('User Interface', 'scale', fallback=1)
     BASE_CELL_SIZE = 16  # 16x16 px
     CELL_SIZE = BASE_CELL_SIZE * SCALE
     BORDER = 10 * SCALE  # px
@@ -167,23 +230,3 @@ class GUI:
     FIELD_Y_TOP_LEFT = PANEL_HEIGHT + 2 * BORDER
 
     RESOLUTION = (SCREEN_WIDTH, SCREEN_HEIGHT)
-
-    DRAW_HOVERS = True
-    FPS = 60
-
-
-# --- Config Validation -------------------------------------------------------
-
-def config_validation():
-
-    if GAME.ROWS == 1 and GAME.COLS == 1:
-        raise ValueError("Minefield size is too small.")
-    if GAME.ROWS > 256 or GAME.COLS > 256:
-        raise ValueError("Minefield size is too big.")
-    if GAME.BOMBS < 1:
-        raise ValueError("Too few bombs set for the minefield.")
-    if GAME.BOMBS > GAME.ROWS * GAME.COLS - 1:
-        raise ValueError("Too many bombs set for the minefield.")
-
-
-config_validation()

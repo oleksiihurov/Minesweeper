@@ -21,7 +21,7 @@ from numpy import ndarray
 import pygame as pg
 
 # Project imports
-from config import ACTION, FACE, CODE_TO_CELL, GAME, GUI
+from config import ACTION, FACE_STATE, CODE_TO_CELL, GAME, GUI
 
 
 # --- Graphics ----------------------------------------------------------------
@@ -48,7 +48,7 @@ class Graphics:
         # Preparing sprites
         self.sprites: dict[str, pg.Surface] = dict()
         self.load_sprites()
-        if GUI.DRAW_HOVERS:
+        if GUI.INDICATE_HOVER:
             self.make_hover_sprites()
         if GAME.COLS < 8:
             self.make_grid_line_sprite()
@@ -356,12 +356,12 @@ class Graphics:
 
         self.screen.blit(self.frame, self.frame.get_rect())
 
-    def draw_face_button(self, face: FACE):
+    def draw_face_button(self, face_state: FACE_STATE):
         """
         Reflecting current state of the face button.
         """
 
-        sprite = self.sprites['face_button_' + face.name.lower()]
+        sprite = self.sprites['face_button_' + face_state.name.lower()]
         rect = sprite.get_rect()
         rect.midtop = (
             GUI.PANEL_X_CENTER,
