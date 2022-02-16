@@ -101,8 +101,8 @@ class GAME:
     """Set of constants for Game."""
 
     # matrix size
-    ROWS = 16  # 2 <= ROWS <= 32
-    COLS = 30  # 2 <= COLS <= 32
+    ROWS = 16  # 1 <= ROWS <= 256
+    COLS = 30  # 1 <= COLS <= 256
 
     START_RULE = START_RULE.EMPTY_CELL
     MARKS_PRESENT = True
@@ -120,7 +120,7 @@ class GAME:
 
     # random seed for minefield generation
     # None - pure random. 42 - certain random seed for reproducible results.
-    SEED = 42
+    SEED = None
     if SEED is None:
         # generating random seed and preserving it
         SEED = randint(2_147_483_648)
@@ -143,6 +143,11 @@ class GUI:
     BASE_CELL_SIZE = 16  # 16x16 px
     CELL_SIZE = BASE_CELL_SIZE * SCALE
     BORDER = 10 * SCALE  # px
+
+    if GAME.COLS >= 8:
+        PADDING = 0
+    else:
+        PADDING = int((8 - GAME.COLS) / 2 * CELL_SIZE)
 
     PANEL_HEIGHT = 32 * SCALE  # px
     FIELD_HEIGHT = CELL_SIZE * GAME.ROWS
@@ -171,11 +176,10 @@ class GUI:
 
 def config_validation():
 
-    # TODO minefield not 2x2 - but 1x8 instead
-    if GAME.ROWS < 2 or GAME.COLS < 2:
-        raise ValueError("Minefield size is too narrow.")
-    if GAME.ROWS > 32 or GAME.COLS > 32:
-        raise ValueError("Minefield size is too wide.")
+    if GAME.ROWS == 1 and GAME.COLS == 1:
+        raise ValueError("Minefield size is too small.")
+    if GAME.ROWS > 256 or GAME.COLS > 256:
+        raise ValueError("Minefield size is too big.")
     if GAME.BOMBS < 1:
         raise ValueError("Too few bombs set for the minefield.")
     if GAME.BOMBS > GAME.ROWS * GAME.COLS + 1:

@@ -50,6 +50,8 @@ class Graphics:
         self.load_sprites()
         if GUI.DRAW_HOVERS:
             self.make_hover_sprites()
+        if GAME.COLS < 8:
+            self.make_grid_line_sprite()
 
         # Preparing and drawing frame
         self.frame = pg.Surface((GUI.SCREEN_WIDTH, GUI.SCREEN_HEIGHT))
@@ -88,6 +90,20 @@ class Graphics:
                     (w * GUI.SCALE, h * GUI.SCALE)
                 )
             self.sprites[name] = sprite
+
+    def make_grid_line_sprite(self):
+        """
+        Making additional sprite for vertical grid line
+        in case of narrow minefield used (GAME.COLS < 8).
+        """
+
+        cell_empty = self.sprites['cell_empty']
+        cell_empty_rect = cell_empty.get_rect()
+        cell_empty_rect.width = 1 * GUI.SCALE
+
+        sprite = pg.Surface(cell_empty_rect.size)
+        sprite.blit(cell_empty, (0, 0), cell_empty_rect)
+        self.sprites['cell_grid_line'] = sprite
 
     def make_hover_sprites(self):
         """
@@ -144,7 +160,7 @@ class Graphics:
 
         sprite = self.sprites[name]
         rect = sprite.get_rect()
-        for col in range(GAME.COLS):
+        for col in range(max(GAME.COLS, 8)):
             rect.topleft = (GUI.BORDER + col * GUI.CELL_SIZE, y)
             surface.blit(sprite, rect)
 
@@ -225,6 +241,15 @@ class Graphics:
                 2 * GUI.BORDER + GUI.PANEL_HEIGHT + row * GUI.CELL_SIZE
             )
 
+            # separate vertical grid line in case of narrow minefield
+            if GAME.COLS < 8:
+                self.put_sprite_using_topleft(
+                    self.frame, 'cell_grid_line',
+                    GUI.FIELD_X_TOP_LEFT + GUI.PADDING
+                    + GAME.COLS * GUI.CELL_SIZE,
+                    2 * GUI.BORDER + GUI.PANEL_HEIGHT + row * GUI.CELL_SIZE
+                )
+
         # frame line #5
         self.put_sprite_using_topleft(
             self.frame, 'frame_field_bottom_left_corner',
@@ -250,7 +275,7 @@ class Graphics:
         """
 
         x, y = mouse_coords
-        col = (x - GUI.FIELD_X_TOP_LEFT) // GUI.CELL_SIZE
+        col = (x - GUI.FIELD_X_TOP_LEFT - GUI.PADDING) // GUI.CELL_SIZE
         row = (y - GUI.FIELD_Y_TOP_LEFT) // GUI.CELL_SIZE
         return row, col
 
@@ -261,7 +286,7 @@ class Graphics:
         """
 
         row, col = position
-        x = GUI.FIELD_X_TOP_LEFT + col * GUI.CELL_SIZE
+        x = GUI.FIELD_X_TOP_LEFT + GUI.PADDING + col * GUI.CELL_SIZE
         y = GUI.FIELD_Y_TOP_LEFT + row * GUI.CELL_SIZE
         return x, y
 
@@ -316,7 +341,7 @@ class Graphics:
         """
 
         return pg.Rect(
-            GUI.FIELD_X_TOP_LEFT,
+            GUI.FIELD_X_TOP_LEFT + GUI.PADDING,
             GUI.FIELD_Y_TOP_LEFT,
             GAME.COLS * GUI.CELL_SIZE,
             GAME.ROWS * GUI.CELL_SIZE
