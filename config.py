@@ -105,7 +105,7 @@ class GAME:
     COLS = 30  # 1 <= COLS <= 256
 
     START_RULE = START_RULE.EMPTY_CELL
-    MARKS_PRESENT = True
+    MARKS_PRESENT = False
 
     # BOMBS_PERCENTAGE = 0.150  # 0.001 <= PERCENTAGE <= 0.999
     # BOMBS = \
@@ -182,7 +182,7 @@ def config_validation():
         raise ValueError("Minefield size is too big.")
     if GAME.BOMBS < 1:
         raise ValueError("Too few bombs set for the minefield.")
-    if GAME.BOMBS > GAME.ROWS * GAME.COLS + 1:
+    if GAME.BOMBS > GAME.ROWS * GAME.COLS - 1:
         raise ValueError("Too many bombs set for the minefield.")
 
 

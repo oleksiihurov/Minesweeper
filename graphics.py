@@ -265,7 +265,7 @@ class Graphics:
             2 * GUI.BORDER + GUI.PANEL_HEIGHT + GAME.ROWS * GUI.CELL_SIZE
         )
 
-    # --- Coords / Position methods ----------------------------------------------------
+    # --- Coords / Position methods -------------------------------------------
 
     @staticmethod
     def convert_coords(mouse_coords: tuple[int, int]) -> tuple[int, int]:

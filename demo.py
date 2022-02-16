@@ -44,7 +44,7 @@ class Demo:
         self.logic = Logic(GAME)
         self.graphics = Graphics(GUI.RESOLUTION)
 
-        # TODO Debug
+        # TODO remove Debug pre-actions
         # self.logic.perform_action(ACTION.TO_LABEL, (1, 1))
         # self.logic.perform_action(ACTION.TO_OPEN, (1, 2))
         #
