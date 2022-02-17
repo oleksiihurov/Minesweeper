@@ -41,8 +41,9 @@ class Demo:
         self.face_button_status = FACE_STATE.READY
         self.interaction_object = None
 
-        # Setup graphics
+        # Setup game engine
         self.logic = Logic(GAME)
+        # Setup graphics
         self.graphics = Graphics(GUI.RESOLUTION)
 
     # --- Handle methods ------------------------------------------------------

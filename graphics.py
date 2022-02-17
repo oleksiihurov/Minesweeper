@@ -79,10 +79,20 @@ class Graphics:
 
         # Step 2: clipping separate sprites
         for name, clip in stencil.items():
+
             # making separate sprite surface
             rect = pg.Rect(clip)
             sprite = pg.Surface(rect.size)
             sprite.blit(image, (0, 0), rect)
+
+            # applying night mode for all sprites
+            if GUI.NIGHT_MODE:
+                darken = 140
+                sprite.fill(
+                    (darken, darken, darken),
+                    special_flags = pg.BLEND_RGB_MULT
+                )
+
             # rescaling if needed
             if GUI.SCALE != 1:
                 w, h = rect.size
@@ -90,6 +100,7 @@ class Graphics:
                     sprite,
                     (w * GUI.SCALE, h * GUI.SCALE)
                 )
+
             self.sprites[name] = sprite
 
     def make_grid_line_sprite(self):
@@ -210,6 +221,18 @@ class Graphics:
         self.put_sprite_using_topright(
             self.frame, 'frame_panel_right_edge',
             GUI.SCREEN_WIDTH, GUI.BORDER
+        )
+
+        # interior for digits on the panel
+        self.put_sprite_using_topleft(
+            self.frame, 'digit_panel_interior',
+            GUI.PANEL_X_TOP_LEFT + 4 * GUI.SCALE,
+            GUI.PANEL_Y_TOP_LEFT + 3 * GUI.SCALE
+        )
+        self.put_sprite_using_topright(
+            self.frame, 'digit_panel_interior',
+            GUI.PANEL_X_TOP_LEFT + GUI.PANEL_WIDTH - 4 * GUI.SCALE,
+            GUI.PANEL_Y_TOP_LEFT + 3 * GUI.SCALE
         )
 
         # frame line #3

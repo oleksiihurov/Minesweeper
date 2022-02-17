@@ -456,6 +456,7 @@ class Logic:
                 for col in range(self.cols):
                     if self.mined[row, col]:
                         self.flagged[row, col] = True
+                    self.marked[row, col] = False
 
             return True
         else:

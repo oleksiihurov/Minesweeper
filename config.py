@@ -130,6 +130,9 @@ class GUI:
         'assets', config.get('User Interface', 'sprites name') + '.json'
     )
 
+    NIGHT_MODE = \
+        config.getboolean('User Interface', 'night mode', fallback=False)
+
     FPS = config.getint('User Interface', 'frames per second', fallback=60)
 
     INDICATE_HOVER = \
