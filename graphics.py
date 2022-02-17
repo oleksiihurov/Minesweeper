@@ -21,7 +21,8 @@ from numpy import ndarray
 import pygame as pg
 
 # Project imports
-from config import ACTION, FACE_STATE, CODE_TO_CELL, GAME, GUI
+from config import GAME, GUI
+from structure import ACTION, FACE_STATE, CODE_TO_CELL
 
 
 # --- Graphics ----------------------------------------------------------------

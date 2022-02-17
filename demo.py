@@ -15,7 +15,8 @@ Main program. Entry point.
 import pygame as pg
 
 # Project imports
-from config import EVENT, ACTION, GAME_STATE, FACE_STATE, GAME, GUI
+from config import GAME, GUI
+from structure import EVENT, ACTION, GAME_STATE, FACE_STATE
 from logic import Logic
 from graphics import Graphics
 
@@ -43,20 +44,6 @@ class Demo:
         # Setup graphics
         self.logic = Logic(GAME)
         self.graphics = Graphics(GUI.RESOLUTION)
-
-        # TODO remove Debug pre-actions
-        # self.logic.perform_action(ACTION.TO_LABEL, (1, 1))
-        # self.logic.perform_action(ACTION.TO_OPEN, (1, 2))
-        #
-        # self.logic.perform_action(ACTION.TO_OPEN, (6, 8))
-        #
-        # self.logic.perform_action(ACTION.TO_LABEL, (6, 26))
-        # self.logic.perform_action(ACTION.TO_LABEL, (6, 26))
-        # self.logic.perform_action(ACTION.TO_LABEL, (8, 23))
-        # self.logic.perform_action(ACTION.TO_OPEN, (9, 24))
-        #
-        # self.logic.print_revealed_minefield()
-        # self.logic.print_covered_minefield()
 
     # --- Handle methods ------------------------------------------------------
 

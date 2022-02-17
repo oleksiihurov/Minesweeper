@@ -19,7 +19,7 @@ from time import time
 import numpy as np
 
 # Project imports
-from config import START_RULE, ACTION, GAME_STATE, CELL_TO_CODE
+from structure import START_RULE, ACTION, GAME_STATE, CELL_TO_CODE
 
 
 # --- Logic -------------------------------------------------------------------
