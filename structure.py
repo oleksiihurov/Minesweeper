@@ -29,6 +29,7 @@ class EVENT(Enum):
     LEFT_MOUSE_BUTTON_UP = auto()
     RIGHT_MOUSE_BUTTON_DOWN = auto()
     RIGHT_MOUSE_BUTTON_UP = auto()
+    MIDDLE_MOUSE_BUTTON_UP = auto()
     SPACE_BAR_DOWN = auto()
     RIGHT_ARROW_KEY_DOWN = auto()
     LEFT_ARROW_KEY_DOWN = auto()

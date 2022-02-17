@@ -71,14 +71,14 @@ class Graphics:
         """
 
         # Step 1: reading sprites from files
-        image = pg.image.load(path.join('assets', 'sprites.png')).convert()
+        image = pg.image.load(GUI.SPRITES_IMAGE).convert()
 
-        with open(path.join('assets', 'sprites.json'), 'r') as json_file:
+        with open(GUI.SPRITES_STENCIL, 'r') as json_file:
             obj = json.load(json_file)
-        template = {k: v for k, v in obj.items()}
+        stencil = {k: v for k, v in obj.items()}
 
         # Step 2: clipping separate sprites
-        for name, clip in template.items():
+        for name, clip in stencil.items():
             # making separate sprite surface
             rect = pg.Rect(clip)
             sprite = pg.Surface(rect.size)

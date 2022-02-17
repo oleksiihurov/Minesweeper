@@ -89,6 +89,9 @@ class Demo:
                 if event.button == 1:  # Left button click release
                     self.event = EVENT.LEFT_MOUSE_BUTTON_UP
                     print(f'Event {self.event.name} at coords: {self.mouse_coords}')
+                if event.button == 2:  # middle button click release
+                    self.event = EVENT.MIDDLE_MOUSE_BUTTON_UP
+                    print(f'Event {self.event.name} at coords: {self.mouse_coords}')
                 if event.button == 3:  # Right button click release
                     self.event = EVENT.RIGHT_MOUSE_BUTTON_UP
                     print(f'Event {self.event.name} at coords: {self.mouse_coords}')
@@ -113,9 +116,14 @@ class Demo:
                 if event.key == pg.K_DOWN:  # 'down arrow' key
                     self.event = EVENT.DOWN_ARROW_KEY_DOWN
 
-                if event.key == pg.K_z:  # 'z' key
+                if event.key == pg.K_1 \
+                        or event.key == pg.K_KP_1:  # '1' key
                     self.event = EVENT.LEFT_MOUSE_BUTTON_UP
-                if event.key == pg.K_x:  # 'x' key
+                if event.key == pg.K_2 \
+                        or event.key == pg.K_KP_2:  # '2' key
+                    self.event = EVENT.MIDDLE_MOUSE_BUTTON_UP
+                if event.key == pg.K_3 \
+                        or event.key == pg.K_KP_3:  # '3' key
                     self.event = EVENT.RIGHT_MOUSE_BUTTON_UP
 
                 if event.key == pg.K_SPACE:  # Space bar key press
@@ -172,7 +180,8 @@ class Demo:
                 if self.event == EVENT.RIGHT_MOUSE_BUTTON_UP:
                     self.action = ACTION.TO_LABEL
 
-                if self.event == EVENT.SPACE_BAR_DOWN:
+                if self.event == EVENT.MIDDLE_MOUSE_BUTTON_UP \
+                        or self.event == EVENT.SPACE_BAR_DOWN:
                     if self.interaction_object == self.graphics.minefield:
                         self.action = ACTION.TO_REVEAL
             else:

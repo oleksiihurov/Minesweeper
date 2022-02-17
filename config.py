@@ -92,12 +92,8 @@ class GAME:
         _bombs_percentage = \
             config.getfloat('Minefield', 'bombs percentage', fallback=None)
         if _bombs_percentage is not None:
-            BOMBS = \
-                min(
-                    max(
-                        round(_bombs_percentage / 100 * (ROWS * COLS)), 1
-                    ), (ROWS * COLS - 1)
-                )
+            BOMBS = round(_bombs_percentage / 100 * (ROWS * COLS))
+            BOMBS = min(max(BOMBS, 1), (ROWS * COLS - 1))
 
     # game parameters
     START_RULE = {
@@ -126,6 +122,13 @@ class GUI:
     # https://gamedev.stackexchange.com/questions/105750/pygame-fullsreen-display-issue
     import ctypes
     ctypes.windll.user32.SetProcessDPIAware()
+
+    SPRITES_IMAGE = path.join(
+        'assets', config.get('User Interface', 'sprites name') + '.png'
+    )
+    SPRITES_STENCIL = path.join(
+        'assets', config.get('User Interface', 'sprites name') + '.json'
+    )
 
     FPS = config.getint('User Interface', 'frames per second', fallback=60)
 
