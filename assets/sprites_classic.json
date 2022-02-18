@@ -50,8 +50,8 @@
     "cell_flagged": [196, 52, 16, 16],
     "cell_marked": [212, 52, 16, 16],
     "cell_marked_pressed": [228, 52, 16, 16],
-    "cell_mined": [244, 52, 16, 16],
-    "cell_not_mined": [260, 52, 16, 16],
-    "cell_detonated": [276, 52, 16, 16],
-    "cell_pressed": [292, 52, 16, 16]
+    "cell_pressed": [244, 52, 16, 16],
+    "cell_mined": [260, 52, 16, 16],
+    "cell_not_mined": [276, 52, 16, 16],
+    "cell_detonated": [292, 52, 16, 16]
 }

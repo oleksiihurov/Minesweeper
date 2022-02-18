@@ -124,10 +124,10 @@ class GUI:
     ctypes.windll.user32.SetProcessDPIAware()
 
     SPRITES_IMAGE = path.join(
-        'assets', config.get('User Interface', 'sprites name') + '.png'
+        'assets', config.get('User Interface', 'graphics name') + '.png'
     )
     SPRITES_STENCIL = path.join(
-        'assets', config.get('User Interface', 'sprites name') + '.json'
+        'assets', config.get('User Interface', 'graphics name') + '.json'
     )
 
     NIGHT_MODE = \
@@ -139,7 +139,7 @@ class GUI:
         config.getboolean('User Interface', 'indicate hovering', fallback=True)
 
     # dimensions
-    SCALE = config.getint('User Interface', 'scale', fallback=1)
+    SCALE = config.getint('User Interface', 'graphics scale', fallback=1)
     BASE_CELL_SIZE = 16  # 16x16 px
     CELL_SIZE = BASE_CELL_SIZE * SCALE
     BORDER = 10 * SCALE  # px
