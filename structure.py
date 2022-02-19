@@ -24,7 +24,6 @@ class START_RULE(Enum):
 
 
 class EVENT(Enum):
-    MOUSE_MOTION = auto()
     LEFT_MOUSE_BUTTON_DOWN = auto()
     LEFT_MOUSE_BUTTON_UP = auto()
     RIGHT_MOUSE_BUTTON_DOWN = auto()

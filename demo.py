@@ -53,7 +53,6 @@ class Demo:
         self.graphics.clock_tick()
 
         self.is_mousemotion = False
-
         self.event = None
         self.action = None
 
@@ -74,28 +73,24 @@ class Demo:
 
             # events from mouse
             if event.type == pg.MOUSEMOTION:
-                self.event = EVENT.MOUSE_MOTION
+                # distinct flag self.is_mousemotion is needed
+                # for not to override self.event by event of mouse motion
                 self.is_mousemotion = True
                 self.mouse_coords = pg.mouse.get_pos()
 
             left_button, middle_button, right_button = pg.mouse.get_pressed()
             if left_button:  # Left button click press
                 self.event = EVENT.LEFT_MOUSE_BUTTON_DOWN
-                print(f'Event {self.event.name} at coords: {self.mouse_coords}')
             if right_button:  # Right button click press
                 self.event = EVENT.RIGHT_MOUSE_BUTTON_DOWN
-                print(f'Event {self.event.name} at coords: {self.mouse_coords}')
 
             if event.type == pg.MOUSEBUTTONUP:
                 if event.button == 1:  # Left button click release
                     self.event = EVENT.LEFT_MOUSE_BUTTON_UP
-                    print(f'Event {self.event.name} at coords: {self.mouse_coords}')
                 if event.button == 2:  # middle button click release
                     self.event = EVENT.MIDDLE_MOUSE_BUTTON_UP
-                    print(f'Event {self.event.name} at coords: {self.mouse_coords}')
                 if event.button == 3:  # Right button click release
                     self.event = EVENT.RIGHT_MOUSE_BUTTON_UP
-                    print(f'Event {self.event.name} at coords: {self.mouse_coords}')
 
             # events from keyboard
             if event.type == pg.KEYDOWN:
@@ -129,7 +124,6 @@ class Demo:
 
                 if event.key == pg.K_SPACE:  # Space bar key press
                     self.event = EVENT.SPACE_BAR_DOWN
-                    print(f'Event {self.event.name} at coords: {self.mouse_coords}')
 
     def actions_handler(self):
         """Program actions in the main loop."""
@@ -139,7 +133,8 @@ class Demo:
         # That is done to give users ability to change their minds,
         # once performing the mouse click acton.
 
-        if self.event is not None:
+        if self.event is not None \
+                or self.is_mousemotion:
 
             if self.graphics.face_button.collidepoint(self.mouse_coords):
                 self.interaction_object = self.graphics.face_button
@@ -266,13 +261,10 @@ class Demo:
     def new_game(self):
         """Procedure for the new game."""
 
-        print('New Game')
         self.logic.new_game()
         self.face_button_status = FACE_STATE.READY
 
     def reaction_on_hover(self):
-        print(f'Action {self.action.name} to the cell at position: '
-              f'{self.graphics.convert_coords(self.mouse_coords)}')
         self.hover_action = True
         self.logic.define_hovered_cell(
             self.graphics.convert_coords(self.mouse_coords)
@@ -281,8 +273,6 @@ class Demo:
     def reaction_on_press(self):
         """Performing reaction on press input buttons/keys."""
 
-        print(f'Action {self.action.name} to the cell at position: '
-              f'{self.graphics.convert_coords(self.mouse_coords)}')
         self.face_button_status = FACE_STATE.ACTIVE
         self.press_action = self.action
         self.logic.define_pressed_cells(
@@ -293,8 +283,6 @@ class Demo:
     def reaction_on_release(self):
         """Performing reaction on release input buttons/keys."""
 
-        print(f'Action {self.action.name} to the cell at position: '
-              f'{self.graphics.convert_coords(self.mouse_coords)}')
         self.press_action = None
         self.logic.perform_action(
             self.action,
