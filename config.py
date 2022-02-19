@@ -15,6 +15,7 @@ Predefined parameters and constants.
 from typing import Optional
 from dataclasses import dataclass
 from os import path
+from json import load as json_load
 from configparser import ConfigParser
 
 # External imports
@@ -138,18 +139,29 @@ class GUI:
     INDICATE_HOVER = \
         config.getboolean('User Interface', 'indicate hovering', fallback=True)
 
+    # reading stencil for retrieving dimensions of the sprites
+    with open(SPRITES_STENCIL, 'r') as json_file:
+        _obj = json_load(json_file)
+    _stencil = {k: v for k, v in _obj.items()}
+
     # dimensions
     SCALE = config.getint('User Interface', 'graphics scale', fallback=1)
-    BASE_CELL_SIZE = 16  # 16x16 px
+    BASE_CELL_SIZE = max(
+        _stencil['cell_empty'][2],
+        _stencil['cell_empty'][3]
+    )
     CELL_SIZE = BASE_CELL_SIZE * SCALE
-    BORDER = 10 * SCALE  # px
+    BORDER = SCALE * max(
+        _stencil['frame_panel_top_left_corner'][2],
+        _stencil['frame_panel_top_left_corner'][3]
+    )
 
     if GAME.COLS >= 8:
         PADDING = 0
     else:
         PADDING = int((8 - GAME.COLS) / 2 * CELL_SIZE)
 
-    PANEL_HEIGHT = 32 * SCALE  # px
+    PANEL_HEIGHT = SCALE * _stencil['frame_panel_interior'][3]
     FIELD_HEIGHT = CELL_SIZE * GAME.ROWS
     SCREEN_HEIGHT = PANEL_HEIGHT + FIELD_HEIGHT + 3 * BORDER
 

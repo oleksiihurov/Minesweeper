@@ -13,7 +13,7 @@ Presentation, graphics & UI, provided by pygame external module.
 
 # System imports
 from os import environ, path
-import json
+from json import load as json_load
 from typing import Optional
 
 # External imports
@@ -74,7 +74,7 @@ class Graphics:
         image = pg.image.load(GUI.SPRITES_IMAGE).convert()
 
         with open(GUI.SPRITES_STENCIL, 'r') as json_file:
-            obj = json.load(json_file)
+            obj = json_load(json_file)
         stencil = {k: v for k, v in obj.items()}
 
         # Step 2: clipping separate sprites
