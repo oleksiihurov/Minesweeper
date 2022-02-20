@@ -161,6 +161,8 @@ class GUI:
     else:
         PADDING = int((8 - GAME.COLS) / 2 * CELL_SIZE)
 
+    DIGIT_WIDTH = _stencil['digit_0'][2]
+
     PANEL_HEIGHT = SCALE * _stencil['frame_panel_interior'][3]
     FIELD_HEIGHT = CELL_SIZE * GAME.ROWS
     SCREEN_HEIGHT = PANEL_HEIGHT + FIELD_HEIGHT + 3 * BORDER

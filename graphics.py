@@ -458,7 +458,8 @@ class Graphics:
         for index, symbol in enumerate(string_score):
             self.put_sprite_using_topleft(
                 self.screen, 'digit_' + symbol,
-                GUI.PANEL_X_TOP_LEFT + (5 + index * 13) * GUI.SCALE,
+                GUI.PANEL_X_TOP_LEFT
+                + (5 + index * GUI.DIGIT_WIDTH) * GUI.SCALE,
                 GUI.PANEL_Y_TOP_LEFT + 4 * GUI.SCALE
             )
 
@@ -478,7 +479,7 @@ class Graphics:
             self.put_sprite_using_topright(
                 self.screen, 'digit_' + symbol,
                 GUI.PANEL_X_TOP_LEFT + GUI.PANEL_WIDTH
-                - (5 + (2 - index) * 13) * GUI.SCALE,
+                - (5 + (2 - index) * GUI.DIGIT_WIDTH) * GUI.SCALE,
                 GUI.PANEL_Y_TOP_LEFT + 4 * GUI.SCALE
             )
 
