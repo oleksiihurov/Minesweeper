@@ -150,18 +150,25 @@ class Graphics:
                 special_flags = pg.BLEND_RGB_ADD
             )
 
-    def put_sprite_using_topleft(
+    def put_sprite_using_anchor(
             self, surface: pg.Surface,
-            name: str, x: int, y: int
+            name: str,
+            anchor: str,
+            x: int, y: int
     ):
         """
         Drawing sprite by its name on coordinates (x, y) of the surface,
-        using topleft as an anchor for the rect.
+        using anchor point for the rect.
         """
 
         sprite = self.sprites[name]
         rect = sprite.get_rect()
-        rect.topleft = (x, y)
+        if anchor == 'topleft':
+            rect.topleft = (x, y)
+        elif anchor == 'topright':
+            rect.topright = (x, y)
+        elif anchor == 'center':
+            rect.center = (x, y)
         surface.blit(sprite, rect)
 
     def put_line_of_sprites(self, surface: pg.Surface, name: str, y: int):
@@ -170,25 +177,11 @@ class Graphics:
         by name on coordinates (x, y) of the surface.
         """
 
-        sprite = self.sprites[name]
-        rect = sprite.get_rect()
         for col in range(max(GAME.COLS, 8)):
-            rect.topleft = (GUI.BORDER + col * GUI.CELL_SIZE, y)
-            surface.blit(sprite, rect)
-
-    def put_sprite_using_topright(
-            self, surface: pg.Surface,
-            name: str, x: int, y: int
-    ):
-        """
-        Drawing sprite by its name on coordinates (x, y) of the surface,
-        using topright as an anchor for the rect.
-        """
-
-        sprite = self.sprites[name]
-        rect = sprite.get_rect()
-        rect.topright = (x, y)
-        surface.blit(sprite, rect)
+            self.put_sprite_using_anchor(
+                surface, name, 'topleft',
+                GUI.BORDER + col * GUI.CELL_SIZE, y
+            )
 
     def build_frame(self):
         """
@@ -196,95 +189,96 @@ class Graphics:
         """
 
         # frame line #1
-        self.put_sprite_using_topleft(
-            self.frame, 'frame_panel_top_left_corner',
+        self.put_sprite_using_anchor(
+            self.frame, 'frame_panel_top_left_corner', 'topleft',
             0, 0
         )
         self.put_line_of_sprites(
             self.frame, 'frame_panel_top_edge',
             0
         )
-        self.put_sprite_using_topright(
-            self.frame, 'frame_panel_top_right_corner',
+        self.put_sprite_using_anchor(
+            self.frame, 'frame_panel_top_right_corner', 'topright',
             GUI.SCREEN_WIDTH, 0
         )
 
         # frame line #2
-        self.put_sprite_using_topleft(
-            self.frame, 'frame_panel_left_edge',
+        self.put_sprite_using_anchor(
+            self.frame, 'frame_panel_left_edge', 'topleft',
             0, GUI.BORDER
         )
         self.put_line_of_sprites(
             self.frame, 'frame_panel_interior',
             GUI.BORDER
         )
-        self.put_sprite_using_topright(
-            self.frame, 'frame_panel_right_edge',
+        self.put_sprite_using_anchor(
+            self.frame, 'frame_panel_right_edge', 'topright',
             GUI.SCREEN_WIDTH, GUI.BORDER
         )
 
         # interior for digits on the panel
-        self.put_sprite_using_topleft(
-            self.frame, 'digit_panel_interior',
-            GUI.PANEL_X_TOP_LEFT + 4 * GUI.SCALE,
-            GUI.PANEL_Y_TOP_LEFT + 3 * GUI.SCALE
+        self.put_sprite_using_anchor(
+            self.frame, 'digit_panel_interior', 'center',
+            GUI.PANEL_X_TOP_LEFT + 2 * GUI.DIGIT_WIDTH,
+            GUI.PANEL_Y_CENTER
         )
-        self.put_sprite_using_topright(
-            self.frame, 'digit_panel_interior',
-            GUI.PANEL_X_TOP_LEFT + GUI.PANEL_WIDTH - 4 * GUI.SCALE,
-            GUI.PANEL_Y_TOP_LEFT + 3 * GUI.SCALE
+        self.put_sprite_using_anchor(
+            self.frame, 'digit_panel_interior', 'center',
+            GUI.PANEL_X_TOP_LEFT + GUI.PANEL_WIDTH
+            - 2 * GUI.DIGIT_WIDTH,
+            GUI.PANEL_Y_CENTER
         )
 
         # frame line #3
-        self.put_sprite_using_topleft(
-            self.frame, 'frame_field_top_left_corner',
+        self.put_sprite_using_anchor(
+            self.frame, 'frame_field_top_left_corner', 'topleft',
             0, GUI.BORDER + GUI.PANEL_HEIGHT
         )
         self.put_line_of_sprites(
             self.frame, 'frame_field_top_edge',
             GUI.BORDER + GUI.PANEL_HEIGHT
         )
-        self.put_sprite_using_topright(
-            self.frame, 'frame_field_top_right_corner',
+        self.put_sprite_using_anchor(
+            self.frame, 'frame_field_top_right_corner', 'topright',
             GUI.SCREEN_WIDTH, GUI.BORDER + GUI.PANEL_HEIGHT
         )
 
         # frame line #4
         for row in range(GAME.ROWS):
-            self.put_sprite_using_topleft(
-                self.frame, 'frame_field_left_edge',
+            self.put_sprite_using_anchor(
+                self.frame, 'frame_field_left_edge', 'topleft',
                 0, 2 * GUI.BORDER + GUI.PANEL_HEIGHT + row * GUI.CELL_SIZE
             )
             self.put_line_of_sprites(
                 self.frame, 'frame_field_interior',
                 2 * GUI.BORDER + GUI.PANEL_HEIGHT + row * GUI.CELL_SIZE
             )
-            self.put_sprite_using_topright(
-                self.frame, 'frame_field_right_edge',
+            self.put_sprite_using_anchor(
+                self.frame, 'frame_field_right_edge', 'topright',
                 GUI.SCREEN_WIDTH,
                 2 * GUI.BORDER + GUI.PANEL_HEIGHT + row * GUI.CELL_SIZE
             )
 
             # separate vertical grid line in case of narrow minefield
             if GAME.COLS < 8:
-                self.put_sprite_using_topleft(
-                    self.frame, 'cell_grid_line',
+                self.put_sprite_using_anchor(
+                    self.frame, 'cell_grid_line', 'topleft',
                     GUI.FIELD_X_TOP_LEFT + GUI.PADDING
                     + GAME.COLS * GUI.CELL_SIZE,
                     2 * GUI.BORDER + GUI.PANEL_HEIGHT + row * GUI.CELL_SIZE
                 )
 
         # frame line #5
-        self.put_sprite_using_topleft(
-            self.frame, 'frame_field_bottom_left_corner',
+        self.put_sprite_using_anchor(
+            self.frame, 'frame_field_bottom_left_corner', 'topleft',
             0, 2 * GUI.BORDER + GUI.PANEL_HEIGHT + GAME.ROWS * GUI.CELL_SIZE
         )
         self.put_line_of_sprites(
             self.frame, 'frame_field_bottom_edge',
             2 * GUI.BORDER + GUI.PANEL_HEIGHT + GAME.ROWS * GUI.CELL_SIZE
         )
-        self.put_sprite_using_topright(
-            self.frame, 'frame_field_bottom_right_corner',
+        self.put_sprite_using_anchor(
+            self.frame, 'frame_field_bottom_right_corner', 'topright',
             GUI.SCREEN_WIDTH,
             2 * GUI.BORDER + GUI.PANEL_HEIGHT + GAME.ROWS * GUI.CELL_SIZE
         )
@@ -385,13 +379,10 @@ class Graphics:
         Reflecting current state of the face button.
         """
 
-        sprite = self.sprites['face_button_' + face_state.name.lower()]
-        rect = sprite.get_rect()
-        rect.midtop = (
-            GUI.PANEL_X_CENTER,
-            GUI.PANEL_Y_TOP_LEFT + 3 * GUI.SCALE
+        self.put_sprite_using_anchor(
+            self.screen, 'face_button_' + face_state.name.lower(), 'center',
+            GUI.PANEL_X_CENTER, GUI.PANEL_Y_CENTER
         )
-        self.screen.blit(sprite, rect)
 
     def draw_minefield(self, matrix: ndarray):
         """
@@ -400,9 +391,9 @@ class Graphics:
 
         for row in range(GAME.ROWS):
             for col in range(GAME.COLS):
-                self.put_sprite_using_topleft(
+                self.put_sprite_using_anchor(
                     self.screen, 'cell_' + CODE_TO_CELL[matrix[row, col]],
-                    *self.convert_position((row, col))
+                    'topleft', *self.convert_position((row, col))
                 )
 
     def draw_hovered_cell(
@@ -415,8 +406,8 @@ class Graphics:
         """
 
         hover_sprite_name = 'cell_' + CODE_TO_CELL[code_of_cell] + '_hovered'
-        self.put_sprite_using_topleft(
-            self.screen, hover_sprite_name,
+        self.put_sprite_using_anchor(
+            self.screen, hover_sprite_name, 'topleft',
             *self.convert_position(cell)
         )
 
@@ -432,14 +423,14 @@ class Graphics:
         if cells is not None:
             if action == ACTION.TO_OPEN_PRESS:
                 for cell in cells:
-                    self.put_sprite_using_topleft(
-                        self.screen, 'cell_pressed',
+                    self.put_sprite_using_anchor(
+                        self.screen, 'cell_pressed', 'topleft',
                         *self.convert_position(cell)
                     )
             elif action == ACTION.TO_LABEL_PRESS:
                 for cell in cells:
-                    self.put_sprite_using_topleft(
-                        self.screen, 'cell_marked_pressed',
+                    self.put_sprite_using_anchor(
+                        self.screen, 'cell_marked_pressed', 'topleft',
                         *self.convert_position(cell)
                     )
 
@@ -456,11 +447,10 @@ class Graphics:
 
         # drawing corresponding digits
         for index, symbol in enumerate(string_score):
-            self.put_sprite_using_topleft(
-                self.screen, 'digit_' + symbol,
-                GUI.PANEL_X_TOP_LEFT
-                + (5 + index * GUI.DIGIT_WIDTH) * GUI.SCALE,
-                GUI.PANEL_Y_TOP_LEFT + 4 * GUI.SCALE
+            self.put_sprite_using_anchor(
+                self.screen, 'digit_' + symbol, 'center',
+                GUI.PANEL_X_TOP_LEFT + (index + 1) * GUI.DIGIT_WIDTH,
+                GUI.PANEL_Y_CENTER
             )
 
     def draw_time_score(self, time_score: int):
@@ -475,12 +465,12 @@ class Graphics:
             string_score = '999'
 
         # drawing corresponding digits
-        for index, symbol in enumerate(string_score):
-            self.put_sprite_using_topright(
-                self.screen, 'digit_' + symbol,
+        for index, symbol in enumerate(string_score[::-1]):
+            self.put_sprite_using_anchor(
+                self.screen, 'digit_' + symbol, 'center',
                 GUI.PANEL_X_TOP_LEFT + GUI.PANEL_WIDTH
-                - (5 + (2 - index) * GUI.DIGIT_WIDTH) * GUI.SCALE,
-                GUI.PANEL_Y_TOP_LEFT + 4 * GUI.SCALE
+                - (index + 1) * GUI.DIGIT_WIDTH,
+                GUI.PANEL_Y_CENTER
             )
 
     # --- Operational methods -------------------------------------------------
