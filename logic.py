@@ -19,7 +19,7 @@ from time import time
 import numpy as np
 
 # Project imports
-from structure import START_RULE, ACTION, GAME_STATE, CELL_TO_CODE
+from structures import START_RULE, ACTION, GAME_STATE, CELL_TO_CODE
 
 
 # --- Logic -------------------------------------------------------------------
@@ -463,55 +463,6 @@ class Logic:
             return False
 
     # --- Export methods ------------------------------------------------------
-
-    # TODO remove Debug method
-    def print_revealed_minefield(self):
-        """
-        Debug print to console current state of revealed minefield.
-        """
-
-        print()
-        lines = '┌─' + '──' * self.cols + '┐' + '\n'
-        for row in range(self.rows):
-            line = '│ '
-            for col in range(self.cols):
-                if self.mined[row, col]:
-                    line += '*'
-                else:
-                    if self.nearby[row, col]:
-                        line += str(self.nearby[row, col])
-                    else:
-                        line += ' '  # '·'
-                line += ' '
-            lines += line + '│' + '\n'
-        lines += '└─' + '──' * self.cols + '┘'
-        print(lines)
-
-    # TODO remove Debug method
-    def print_covered_minefield(self):
-        """
-        Debug print to console current state of covered minefield.
-        """
-
-        print()
-        lines = '╔═' + '══' * self.cols + '╗' + '\n'
-        for row in range(self.rows):
-            line = '║ '
-            for col in range(self.cols):
-                if not self.opened[row, col]:
-                    if self.flagged[row, col]:
-                        line += '▒'
-                    else:
-                        line += '█'
-                else:
-                    if self.nearby[row, col]:
-                        line += str(self.nearby[row, col])
-                    else:
-                        line += '·'
-                line += ' '
-            lines += line + '║' + '\n'
-        lines += '╚═' + '══' * self.cols + '╝'
-        print(lines)
 
     def get_bombs_score(self) -> int:
         """Counting number of left bombs to flag on the minefield."""

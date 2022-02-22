@@ -22,7 +22,7 @@ import pygame as pg
 
 # Project imports
 from config import GAME, GUI
-from structure import ACTION, FACE_STATE, CODE_TO_CELL
+from structures import ACTION, FACE_STATE, CODE_TO_CELL
 
 
 # --- Graphics ----------------------------------------------------------------

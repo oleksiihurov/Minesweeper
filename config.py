@@ -22,7 +22,7 @@ from configparser import ConfigParser
 from numpy.random import randint, seed
 
 # Project imports
-from structure import START_RULE
+from structures import START_RULE
 
 
 # --- Config Parser -----------------------------------------------------------

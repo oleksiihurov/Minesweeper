@@ -16,7 +16,7 @@ import pygame as pg
 
 # Project imports
 from config import GAME, GUI
-from structure import EVENT, ACTION, GAME_STATE, FACE_STATE
+from structures import EVENT, ACTION, GAME_STATE, FACE_STATE
 from logic import Logic
 from graphics import Graphics
 
