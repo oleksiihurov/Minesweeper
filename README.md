@@ -40,19 +40,19 @@ for educational purpose as well as part of portfolio.
 - Main program entry point is not flooded with unnecessary code.
 
 
+## Dependency on external modules and versions
+
+* Python 3.9.5+
+* numpy 1.21.4 (https://numpy.org)
+* pygame 2.1.0 (https://www.pygame.org)
+
+
 ## How to Use the Program
 
 1. Open the project in any convenient Python IDE.
 2. Install the following packages using pip: "numpy" and "pygame"
 3. To adjust configuration for the game - edit the file: "assets\config.ini"
 4. Run the project's main.py
-
-
-## Dependency on external modules and versions
-
-* Python 3.9.5+
-* numpy 1.21.4 (https://numpy.org)
-* pygame 2.1.0 (https://www.pygame.org)
 
 
 ## How to Play
